@@ -1,17 +1,32 @@
 from aiogram import Bot, Dispatcher, types
-from aiogram.types import WebAppInfo
-from aiogram.utils import executor
+from aiogram.filters import Command
+from aiogram.types import Message, WebAppInfo
+import asyncio
 
-bot = Bot(token="8016651500:AAHWvpf5S51rAOO68KMMAVZsWHBFBXU0H9M")
-dp = Dispatcher(bot)
+TOKEN = "8016651500:AAHWvpf5S51rAOO68KMMAVZsWHBFBXU0H9M"  # Замените на ваш токен
+bot = Bot(token=TOKEN)
+dp = Dispatcher()
 
-@dp.message_handler(commands=["start"])
-async def start(message: types.Message):
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    web_app = types.WebAppInfo(url="http://localhost:3000")  # URL фронтенда
-    button = types.KeyboardButton("Открыть карточки", web_app=web_app)
-    keyboard.add(button)
-    await message.answer("Нажмите, чтобы открыть приложение:", reply_markup=keyboard)
+@dp.message(Command("start"))
+async def start(message: Message):
+    keyboard = types.ReplyKeyboardMarkup(
+        keyboard=[
+            [types.KeyboardButton(
+                text="Открыть карточки",
+                web_app=WebAppInfo(url="https://9335-194-58-154-209.ngrok-free.app")  # Ваш URL веб-приложения
+            )]
+        ],
+        resize_keyboard=True
+    )
+    await message.answer(
+        "Нажмите, чтобы открыть приложение:",
+        reply_markup=keyboard
+    )
+
+async def main():
+    await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    executor.start_polling(dp, skip_updates=True)
+    asyncio.run(main())
+
+
