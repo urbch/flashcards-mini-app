@@ -11,3 +11,10 @@ class Deck(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     name = Column(String)
+    
+class Card(Base):
+    __tablename__ = "cards"
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    word = Column(String)
+    translation = Column(String)

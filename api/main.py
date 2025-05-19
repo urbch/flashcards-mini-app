@@ -1,17 +1,26 @@
 from fastapi import FastAPI, Depends, HTTPException
 from sqlalchemy.orm import Session
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from database import SessionLocal, Base, engine
-from models import User, Deck
+from models import User, Deck, Card
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],  # Разрешить все методы (GET, POST, OPTIONS, и т.д.)
+    allow_headers=["*"],  # Разрешить все заголовки
+)
 
 # Создание таблиц
 Base.metadata.create_all(bind=engine)
 
 # Модель для создания колоды
 class DeckCreate(BaseModel):
-    user_id: int
+    telegram_id: int  # Изменено на telegram_id
     name: str
 
 # Получение сессии БД
@@ -22,15 +31,32 @@ def get_db():
     finally:
         db.close()
 
+async def get_or_create_user(telegram_id: int, db: Session):
+    user = db.query(User).filter(User.telegram_id == telegram_id).first()
+    if not user:
+        user = User(telegram_id=telegram_id)
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+    return user
+
 @app.post("/decks/")
 async def create_deck(deck: DeckCreate, db: Session = Depends(get_db)):
-    db_deck = Deck(user_id=deck.user_id, name=deck.name)
+    user = await get_or_create_user(deck.telegram_id, db)
+    db_deck = Deck(user_id=user.id, name=deck.name)
     db.add(db_deck)
     db.commit()
     db.refresh(db_deck)
     return {"id": db_deck.id, "name": db_deck.name}
 
-@app.get("/decks/{user_id}")
-async def get_decks(user_id: int, db: Session = Depends(get_db)):
-    decks = db.query(Deck).filter(Deck.user_id == user_id).all()
+@app.get("/decks/{telegram_id}")
+async def get_decks(telegram_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.telegram_id == telegram_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    decks = db.query(Deck).filter(Deck.user_id == user.id).all()
     return [{"id": deck.id, "name": deck.name} for deck in decks]
+
+@app.get("/hello")
+async def home():
+    return f"have a good day!\n"
