@@ -15,7 +15,7 @@ function App() {
   const fetchDecks = async () => {
     if (user) {
       try {
-        const response = await fetch(`https://9335-194-58-154-209.ngrok-free.app/${user.id}`);
+        const response = await fetch(`https://3291-194-58-154-209.ngrok-free.app/${user.id}`);
         const data = await response.json();
         setDecks(data);
       } catch (error) {
