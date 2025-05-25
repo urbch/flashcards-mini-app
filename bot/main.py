@@ -2,8 +2,11 @@ from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import Message, WebAppInfo
 import asyncio
+from dotenv import load_dotenv
+import os
 
-TOKEN = "8016651500:AAHWvpf5S51rAOO68KMMAVZsWHBFBXU0H9M"  # Замените на ваш токен
+load_dotenv()
+TOKEN = os.getenv("BOT_TOKEN") # Замените на ваш токен
 bot = Bot(token=TOKEN)
 dp = Dispatcher()
 
@@ -13,7 +16,7 @@ async def start(message: Message):
         keyboard=[
             [types.KeyboardButton(
                 text="Открыть карточки",
-                web_app=WebAppInfo(url="https://3291-194-58-154-209.ngrok-free.app")  # Ваш URL веб-приложения
+                web_app=WebAppInfo(url="https://4e18-194-58-154-209.ngrok-free.app")  # Ваш URL веб-приложения
             )]
         ],
         resize_keyboard=True

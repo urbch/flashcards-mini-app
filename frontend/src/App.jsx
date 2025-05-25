@@ -22,7 +22,7 @@ function App() {
   const fetchDecks = async () => {
     if (user && user.id) {
       try {
-        const response = await fetch(`http://localhost:8000/decks/${user.id}`);
+        const response = await fetch(`http://127.0.0.1:8000/decks/${user.id}`);
         if (!response.ok) {
           const errorData = await response.json();
           console.error('Error response:', errorData);
@@ -43,7 +43,7 @@ function App() {
       const payload = { telegram_id: user.id, name: deckName.trim() };
       console.log('Sending to /decks/:', payload); // Отладка
       try {
-        const response = await fetch('http://localhost:8000/decks/', {
+        const response = await fetch('http://127.0.0.1:8000/decks/', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
