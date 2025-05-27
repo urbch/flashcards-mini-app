@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from database import SessionLocal, Base, engine
 from models import User, Deck, Card
-
+from fastapi.responses import JSONResponse
 app = FastAPI()
 
 app.add_middleware(
@@ -49,7 +49,7 @@ async def create_deck(deck: DeckCreate, db: Session = Depends(get_db)):
     db.refresh(db_deck)
     return {"id": db_deck.id, "name": db_deck.name}
 
-@app.get("/decks/{telegram_id}")
+@app.get("/decks/{telegram_id}", response_class=JSONResponse)
 async def get_decks(telegram_id: int, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.telegram_id == telegram_id).first()
     if not user:

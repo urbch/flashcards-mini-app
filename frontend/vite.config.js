@@ -5,9 +5,12 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
+    hmr: false, // Отключаем горячую перезагрузку
     allowedHosts: [
-      '4e18-194-58-154-209.ngrok-free.app', // Обновлённый ngrok-хост
+      'b7a3-194-58-154-209.ngrok-free.app', //фронт
+      '469a-194-58-154-209.ngrok-free.app', //бэкенд
       'localhost', // Для локальной разработки
     ],
   },
 });
+

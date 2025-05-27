@@ -6,7 +6,7 @@ services:
       - "80:80"
     networks:
       - app-network
-
+#все надо поменять
   api:
     build: ./api
     ports:
@@ -14,7 +14,7 @@ services:
     env_file:
       - ./api/.env
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/flashcards
+      - DATABASE_URL=postgresql://postgresdea:12345@db:5432/flashcards
     depends_on:
       - db
     networks:
@@ -35,8 +35,8 @@ services:
   db:
     image: postgres:15
     environment:
-      - POSTGRES_USER=user
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=12345
       - POSTGRES_DB=flashcards
     volumes:
       - db_data:/var/lib/postgresql/data
