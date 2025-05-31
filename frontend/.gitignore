@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 bot/.env
+api/.env
+.env

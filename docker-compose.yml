@@ -1,51 +1,41 @@
 version: '3.8'
+
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "80:80"
-    networks:
-      - app-network
-#все надо поменять
-  api:
-    build: ./api
-    ports:
-      - "8000:8000"
-    env_file:
-      - ./api/.env
+      - "5173:5173"
     environment:
-      - DATABASE_URL=postgresql://postgresdea:12345@db:5432/flashcards
-    depends_on:
-      - db
-    networks:
-      - app-network
-
-  bot:
-    build: ./bot
-    env_file:
-      - ./bot/.env
-    environment:
-      - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
-      - API_URL=http://api:8000
+      - REACT_APP_BACKEND_URL=http://backend:8000
     depends_on:
       - api
     networks:
       - app-network
 
-  db:
-    image: postgres:15
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=12345
-      - POSTGRES_DB=flashcards
-    volumes:
-      - db_data:/var/lib/postgresql/data
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    networks:
+      - app-network
+
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - frontend
     networks:
       - app-network
 
 networks:
   app-network:
     driver: bridge
-
-volumes:
-  db_data:
