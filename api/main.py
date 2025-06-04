@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from database import SessionLocal, Base, engine
-from models import User, Deck, Card
+from models import User, Deck, Card, LangCard
 from fastapi.responses import JSONResponse
 import logging
 import httpx
@@ -35,6 +35,20 @@ Base.metadata.create_all(bind=engine)
 class DeckCreate(BaseModel):
     telegram_id: int
     name: str
+
+class LangCardCreate(BaseModel):
+    deck_id: int
+    word: str
+    translation: str
+
+class CardCreate(BaseModel):
+    deck_id: int
+    term: str
+    definition: str
+
+class CardUpdate(BaseModel):
+    term: str
+    definition: str
 
 def get_db():
     db = SessionLocal()
@@ -101,15 +115,50 @@ async def get_decks(telegram_id: int, db: Session = Depends(get_db)):
     except ValueError:
         logger.error(f"Invalid telegram_id format: {telegram_id}")
         raise HTTPException(status_code=400, detail="Invalid telegram_id")
-    
+
     user = db.query(User).filter(User.telegram_id == telegram_id).first()
     if not user:
         logger.warning(f"User not found for telegram_id: {telegram_id}")
         raise HTTPException(status_code=404, detail="User not found")
-    
+
     decks = db.query(Deck).filter(Deck.user_id == user.id).all()
     logger.info(f"Found decks for user {telegram_id}: {decks}")
     return [{"id": deck.id, "name": deck.name} for deck in decks]
+
+@app.post("/cards/")
+async def create_card(card: CardCreate, db: Session = Depends(get_db)):
+    db_card = Card(deck_id=card.deck_id, term=card.term, definition=card.definition)
+    db.add(db_card)
+    db.commit()
+    db.refresh(db_card)
+    return {"id": db_card.id, "deck_id": db_card.deck_id, "term": db_card.term, "definition": db_card.definition}
+
+@app.get("/cards/{deck_id}", response_class=JSONResponse)
+async def get_cards(deck_id: int, db: Session = Depends(get_db)):
+    cards = db.query(Card).filter(Card.deck_id == deck_id).all()
+    return [{"id": card.id, "term": card.term, "definition": card.definition} for card in cards]
+
+# Обновление карточки
+@app.put("/cards/{card_id}")
+async def update_card(card_id: int, card: CardUpdate, db: Session = Depends(get_db)):
+    db_card = db.query(Card).filter(Card.id == card_id).first()
+    if not db_card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    db_card.term = card.term
+    db_card.definition = card.definition
+    db.commit()
+    db.refresh(db_card)
+    return {"id": db_card.id, "deck_id": db_card.deck_id, "term": db_card.term, "definition": db_card.definition}
+
+# Удаление карточки
+@app.delete("/cards/{card_id}")
+async def delete_card(card_id: int, db: Session = Depends(get_db)):
+    db_card = db.query(Card).filter(Card.id == card_id).first()
+    if not db_card:
+        raise HTTPException(status_code=404, detail="Card not found")
+    db.delete(db_card)
+    db.commit()
+    return {"message": "Card deleted"}
 
 @app.get("/hello")
 async def home():
