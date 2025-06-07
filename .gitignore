@@ -1,1 +1,6 @@
 .env
+api/dockerfile
+api/requirements.txt
+docker-compose.yml
+frontend/dockerfile
+frontend/package-lock.json
