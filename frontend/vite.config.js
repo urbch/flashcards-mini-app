@@ -9,8 +9,8 @@ export default defineConfig({
   server: {
     hmr: false, // Отключаем горячую перезагрузку
     allowedHosts: [
-      'dd3e-194-58-154-209.ngrok-free.app', //фронт
-      '469a-194-58-154-209.ngrok-free.app', //бэкенд
+      'f09b-194-58-154-209.ngrok-free.app', //бэкенд
+      '527f-194-58-154-209.ngrok-free.app', //фронт
       'localhost', // Для локальной разработки
     ],
   },

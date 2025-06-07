@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey
+from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, Boolean
 from database import Base
 
 class User(Base):
@@ -11,6 +11,9 @@ class Deck(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     name = Column(String)
+    is_language_deck = Column(Boolean, default=False)  # Отличает языковые колоды
+    source_lang = Column(String, nullable=True)        # Исходный язык
+    target_lang = Column(String, nullable=True)        # Целевой язык
 
 class LangCard(Base):
     __tablename__ = "lang_cards"
