@@ -115,7 +115,7 @@ async def get_telegram_user_info(telegram_id: int) -> dict:
         )
 
 async def translate_word(word: str, source_lang: str, target_lang: str) -> str:
-    url = "http://localhost:5001/translate"
+    url = "http://translate:5000/translate"
     payload = {
         "q": word,
         "source": source_lang,
@@ -319,7 +319,7 @@ async def create_lang_card(card: LangCardCreate, db: Session = Depends(get_db)):
 @lru_cache(maxsize=1000)
 async def cached_translate(word: str, source_lang: str, target_lang: str) -> str:
     logger.info(f"Translating word: {word} from {source_lang} to {target_lang}")
-    url = "http://localhost:5001/translate"
+    url = "http://translate:5000/translate"
     payload = {
         "q": word,
         "source": source_lang,
@@ -421,7 +421,7 @@ async def get_languages():
     logger.info("Fetching available languages from LibreTranslate")
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
-            response = await client.get("http://localhost:5001/languages")
+            response = await client.get("http://translate:5000/languages")
             response.raise_for_status()
             logger.info("Languages fetched successfully")
             return response.json()
