@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useSwipeable } from 'react-swipeable';
+import ConfirmModal from './ConfirmModal';
 import './App.css';
 
 function App() {
@@ -25,6 +26,11 @@ function App() {
   const [languages, setLanguages] = useState([]);
   const [isLanguageDeckSelected, setIsLanguageDeckSelected] = useState(false);
   const [translatingRows, setTranslatingRows] = useState({});
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    message: '',
+    onConfirm: () => {},
+  });
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const lastTranslatedWords = useRef({});
@@ -159,7 +165,7 @@ function App() {
       event.type === 'blur'
     );
 
-    if (triggerTranslation && value.trim().length >= 2 && !updatedRows[index].isManuallyEdited) {
+    if (triggerTranslation && value.trim().length >= 1 && !updatedRows[index].isManuallyEdited) {
       const deck = decks.find(d => d.id === selectedDeck);
       if (!deck || !deck.source_lang || !deck.target_lang) return;
 
@@ -241,32 +247,40 @@ function App() {
   };
 
 const deleteDeck = async (deckId) => {
-    if (!window.confirm('Вы уверены, что хотите удалить эту колоду? Все карточки в ней будут удалены.')) {
-      return;
-    }
-    try {
-      const response = await fetch(`${API_URL}/decks/${deckId}`, {
-        method: 'DELETE',
-        headers: { 'ngrok-skip-browser-warning': '69420' },
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
-      }
-      setDecks(prev => prev.filter(deck => deck.id !== deckId));
-      if (selectedDeck === deckId) {
-        setSelectedDeck(null);
-        setCards([]);
-        setShowCardModal(false);
-        setStudyMode(false);
-      }
-      alert('Колода успешно удалена');
-    } catch (error) {
-      console.error('Error deleting deck:', error);
-      alert(`Ошибка при удалении колоды: ${error.message}`);
-    }
+    // Открываем кастомное модальное окно вместо window.confirm
+    setConfirmModal({
+      isOpen: true,
+      message: 'Вы уверены, что хотите удалить эту колоду? Все карточки в ней будут удалены.',
+      onConfirm: async () => {
+        try {
+          const response = await fetch(`${API_URL}/decks/${deckId}`, {
+            method: 'DELETE',
+            headers: { 'ngrok-skip-browser-warning': '69420' },
+          });
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
+          }
+          setDecks((prev) => prev.filter((deck) => deck.id !== deckId));
+          if (selectedDeck === deckId) {
+            setSelectedDeck(null);
+            setCards([]);
+            setShowCardModal(false);
+            setStudyMode(false);
+          }
+          alert('Колода успешно удалена');
+        } catch (error) {
+          console.error('Error deleting deck:', error);
+          alert(`Ошибка при удалении колоды: ${error.message}`);
+        } finally {
+          setConfirmModal({ isOpen: false, message: '', onConfirm: () => {} });
+        }
+      },
+      onCancel: () => {
+        setConfirmModal({ isOpen: false, message: '', onConfirm: () => {} });
+      },
+    });
   };
-
 
   const handleShowDecks = async () => {
     if (!showDecks) await fetchDecks();
@@ -733,6 +747,13 @@ const deleteDeck = async (deckId) => {
           </div>
         </div>
       )}
+      {/* Добавляем ConfirmModal */}
+      <ConfirmModal
+        isOpen={confirmModal.isOpen}
+        message={confirmModal.message}
+        onConfirm={confirmModal.onConfirm}
+        onCancel={confirmModal.onCancel}
+      />
     </div>
   );
 }
