@@ -187,7 +187,7 @@ function App() {
   const fetchDecks = async () => {
     if (!user?.id) return;
     try {
-      const response = await fetch(`${API_URL}/decks/${user.id}`, {
+      const response = await fetch(`${API_URL}/decks/${user.id}/`, {
         headers: { 'ngrok-skip-browser-warning': '69420' },
       });
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
@@ -240,6 +240,34 @@ function App() {
     }
   };
 
+const deleteDeck = async (deckId) => {
+    if (!window.confirm('Вы уверены, что хотите удалить эту колоду? Все карточки в ней будут удалены.')) {
+      return;
+    }
+    try {
+      const response = await fetch(`${API_URL}/decks/${deckId}`, {
+        method: 'DELETE',
+        headers: { 'ngrok-skip-browser-warning': '69420' },
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
+      }
+      setDecks(prev => prev.filter(deck => deck.id !== deckId));
+      if (selectedDeck === deckId) {
+        setSelectedDeck(null);
+        setCards([]);
+        setShowCardModal(false);
+        setStudyMode(false);
+      }
+      alert('Колода успешно удалена');
+    } catch (error) {
+      console.error('Error deleting deck:', error);
+      alert(`Ошибка при удалении колоды: ${error.message}`);
+    }
+  };
+
+
   const handleShowDecks = async () => {
     if (!showDecks) await fetchDecks();
     setShowDecks(!showDecks);
@@ -259,7 +287,7 @@ function App() {
     setSelectedDeck(deckId);
     setShowCardModal(true);
     try {
-      const deckResponse = await fetch(`${API_URL}/decks/${user.id}`, {
+      const deckResponse = await fetch(`${API_URL}/decks/${user.id}/`, {
         headers: { 'ngrok-skip-browser-warning': '69420' },
       });
       if (!deckResponse.ok) throw new Error(`HTTP error! Status: ${deckResponse.status}`);
@@ -295,7 +323,7 @@ function App() {
     setIsFlipped(false);
     setSwipeDirection(null);
     try {
-      const deckResponse = await fetch(`${API_URL}/decks/${user.id}`, {
+      const deckResponse = await fetch(`${API_URL}/decks/${user.id}/`, {
         headers: { 'ngrok-skip-browser-warning': '69420' },
       });
       if (!deckResponse.ok) throw new Error(`HTTP error! Status: ${deckResponse.status}`);
@@ -633,6 +661,12 @@ function App() {
                       onClick={() => startStudy(deck.id)}
                     >
                       Изучить
+                    </button>
+                    <button
+                      className="delete-button"
+                      onClick={() => deleteDeck(deck.id)}
+                    >
+                      Удалить
                     </button>
                   </div>
                 </li>

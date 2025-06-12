@@ -189,7 +189,7 @@ async def get_decks(telegram_id: int, db: Session = Depends(get_db)):
     try:
         user = db.query(User).filter(User.telegram_id == telegram_id).first()
         if not user:
-            logger.warning(f"User found for telegram_id: {telegram_id}")
+            logger.warning(f"User not found for telegram_id: {telegram_id}")
             raise HTTPException(status_code=404, detail="User not found")
         decks = db.query(Deck).filter(Deck.user_id == user.id).all()
         logger.info(f"Found {len(decks)} decks for user {telegram_id}")
@@ -206,6 +206,18 @@ async def get_decks(telegram_id: int, db: Session = Depends(get_db)):
     except ValueError:
         logger.error(f"Invalid telegram_id format: {telegram_id}")
         raise HTTPException(status_code=400, detail="Invalid telegram_id format")
+
+@app.delete("/decks/{deck_id}")
+async def delete_deck(deck_id: int, db: Session = Depends(get_db)):
+    logger.info(f"Deleting deck: id={deck_id}")
+    db_deck = db.query(Deck).filter(Deck.id == deck_id).first()
+    if not db_deck:
+        logger.error(f"Deck not found: id={deck_id}")
+        raise HTTPException(status_code=404, detail="Deck not found")
+    db.delete(db_deck)
+    db.commit()
+    logger.info(f"Deck deleted: id={deck_id}")
+    return {"message": "Deck deleted successfully"}
 
 @app.post("/cards/")
 async def create_card(card: CardCreate, db: Session = Depends(get_db)):

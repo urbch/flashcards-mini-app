@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, Boolean
+from sqlalchemy.orm import relationship
 from database import Base
 
 class User(Base):
@@ -11,20 +12,28 @@ class Deck(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     name = Column(String)
-    is_language_deck = Column(Boolean, default=False)  # Отличает языковые колоды
-    source_lang = Column(String, nullable=True)        # Исходный язык
-    target_lang = Column(String, nullable=True)        # Целевой язык
+    is_language_deck = Column(Boolean, default=False)
+    source_lang = Column(String, nullable=True)
+    target_lang = Column(String, nullable=True)
+
+    # Добавляем связи для каскадного удаления
+    cards = relationship("Card", back_populates="deck", cascade="all, delete-orphan")
+    lang_cards = relationship("LangCard", back_populates="deck", cascade="all, delete-orphan")
 
 class LangCard(Base):
     __tablename__ = "lang_cards"
     id = Column(Integer, primary_key=True, index=True)
-    deck_id = Column(Integer, ForeignKey("decks.id"))
+    deck_id = Column(Integer, ForeignKey("decks.id", ondelete="CASCADE"))
     word = Column(String)
     translation = Column(String)
+    
+    deck = relationship("Deck", back_populates="lang_cards")
 
 class Card(Base):
     __tablename__ = "cards"
     id = Column(Integer, primary_key=True, index=True)
-    deck_id = Column(Integer, ForeignKey("decks.id"))
+    deck_id = Column(Integer, ForeignKey("decks.id", ondelete="CASCADE"))
     term = Column(String)
     definition = Column(String)
+    
+    deck = relationship("Deck", back_populates="cards")
