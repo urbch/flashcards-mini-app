@@ -1,20 +1,36 @@
-# Используем официальный Node.js образ на Alpine (легковесный)
-FROM node:18-alpine
+# FROM node:18-alpine AS builder
+#
+# WORKDIR /app
+#
+# COPY package.json package-lock.json ./
+#
+# RUN npm install
+#
+# COPY . .
+#
+# RUN npm run build
+#
+# FROM node:18-alpine
+#
+# WORKDIR /app
+#
+# RUN npm install -g serve
+#
+# COPY --from=builder /app/dist ./dist
+#
+# EXPOSE 5173
+#
+# CMD ["serve", "-s", "build", "-l", "5173"]
 
-# Рабочая директория в контейнере
+FROM node:18 AS build
 WORKDIR /app
-
-# Копируем package.json и package-lock.json
-COPY package*.json ./
-
-# Устанавливаем зависимости (включая devDependencies)
+COPY package.json package-lock.json ./
 RUN npm install
-
-# Копируем все файлы проекта
 COPY . .
+RUN npm run build
+RUN ls -la /app/dist
+FROM nginx:alpine
+COPY --from=build /app/dist /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
 
-# Открываем порт, который использует Vite (по умолчанию 5173)
-EXPOSE 5173
-
-# Запускаем dev-сервер с hot-reload
-CMD ["npm", "run", "dev"]

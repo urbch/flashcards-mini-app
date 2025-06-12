@@ -1,28 +1,879 @@
+/*.App {*/
+/*  text-align: center;*/
+/*  padding: 20px;*/
+/*  max-width: 100%;*/
+/*  margin: 0 auto;*/
+/*  box-sizing: border-box;*/
+/*  font-family: Arial, sans-serif;*/
+/*}*/
+
+/*.create-deck {*/
+/*  margin-bottom: 20px;*/
+/*}*/
+
+/*.create-deck {*/
+/*  margin-bottom: 20px;*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  align-items: center;*/
+/*}*/
+
+/*.create-deck input {*/
+/*  width: 100%;*/
+/*  max-width: 300px;*/
+/*  padding: 8px;*/
+/*  margin: 10px 0;*/
+/*  box-sizing: border-box;*/
+/*  border: 1px solid #ccc;*/
+/*  border-radius: 4px;*/
+/*}*/
+
+/*.create-deck button {*/
+/*  padding: 8px 16px;*/
+/*  background-color: #2c365a;*/
+/*  color: #f1f1f1;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*}*/
+
+/*.create-deck button:hover {*/
+/*  background-color: #222945;*/
+/*}*/
+
+/*.create-deck label {*/
+/*  display: inline-flex;*/
+/*  align-items: center;*/
+/*  gap: 5px;*/
+/*  margin-top: 10px;*/
+/*  font-size: 16px;*/
+/*  width: auto;*/
+/*  max-width: none;*/
+/*  text-align: left;*/
+/*  flex-wrap: nowrap;*/
+/*  cursor: pointer;*/
+/*}*/
+
+/*.decks-container {*/
+/*  margin-top: 20px;*/
+/*}*/
+
+/*.decks-container ul {*/
+/*  list-style: none;*/
+/*  padding: 0;*/
+/*  max-width: 280px;*/
+/*  margin: 0 auto;*/
+/*}*/
+
+/*.deck-item {*/
+/*  display: flex;*/
+/*  justify-content: space-between;*/
+/*  align-items: center;*/
+/*  padding: 10px;*/
+/*  background-color: #f1f1f1;*/
+/*  color: #2c365a;*/
+/*  margin: 5px 0;*/
+/*  border-radius: 4px;*/
+/*}*/
+
+/*.deck-item span {*/
+/*  flex-grow: 1;*/
+/*  text-align: left;*/
+/*  padding-right: 10px;*/
+/*}*/
+
+/*.deck-actions {*/
+/*  display: flex;*/
+/*  gap: 10px;*/
+/*}*/
+
+/*.toggle-decks-button {*/
+/*  padding: 8px 16px;*/
+/*  background-color: #f1f1f1;*/
+/*  color: #2c365a;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*}*/
+
+/*.toggle-decks-button:hover {*/
+/*  background-color: #cbcccc;*/
+/*}*/
+
+/*.add-cards-button {*/
+/*  padding: 6px 12px;*/
+/*  background-color: #2c365a;*/
+/*  color: #f1f1f1;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  gap: 5px;*/
+/*}*/
+
+/*.add-cards-button .plus-icon {*/
+/*  font-size: 16px;*/
+/*}*/
+
+/*.add-cards-button:hover {*/
+/*  background-color: #222945;*/
+/*}*/
+
+/*.study-button {*/
+/*  padding: 6px 12px;*/
+/*  background-color: #2c365a;*/
+/*  color: #f1f1f1;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*}*/
+
+/*.study-button:hover {*/
+/*  background-color: #222945;*/
+/*}*/
+
+/*.modal {*/
+/*  position: fixed;*/
+/*  top: 0;*/
+/*  left: 0;*/
+/*  width: 100%;*/
+/*  height: 100%;*/
+/*  background: rgba(0, 0, 0, 0.5);*/
+/*  display: flex;*/
+/*  justify-content: center;*/
+/*  align-items: center;*/
+/*  z-index: 1000;*/
+/*  overflow-y: auto;*/
+/*}*/
+
+/*.modal-content {*/
+/*  background: white;*/
+/*  padding: 20px;*/
+/*  border-radius: 8px;*/
+/*  max-width: 90%;*/
+/*  width: 280px;*/
+/*  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);*/
+/*  max-height: 80vh;*/
+/*  overflow-y: auto;*/
+/*}*/
+
+/*.card-form {*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  gap: 15px;*/
+/*}*/
+
+/*.card-row {*/
+/*  display: flex;*/
+/*  gap: 10px;*/
+/*  align-items: center;*/
+/*}*/
+
+/*.card-row input,*/
+/*.card-row textarea {*/
+/*  flex: 1;*/
+/*  padding: 8px;*/
+/*  box-sizing: border-box;*/
+/*  border: 1px solid #ccc;*/
+/*  border-radius: 4px;*/
+/*}*/
+
+/*.card-row input {*/
+/*  min-width: 0;*/
+/*}*/
+
+/*.card-row textarea {*/
+/*  resize: vertical;*/
+/*  min-height: 60px;*/
+/*  max-height: 100px;*/
+/*}*/
+
+/*.card-row .remove-row {*/
+/*  padding: 8px;*/
+/*  background-color: #c63f3e;*/
+/*  color: #f1f1f1;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*  width: 30px;*/
+/*  height: 30px;*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  justify-content: center;*/
+/*}*/
+
+/*.card-row .remove-row:hover {*/
+/*  background-color: #b63a39;*/
+/*}*/
+
+/*.add-row {*/
+/*  padding: 8px;*/
+/*  background-color: #2c365a;*/
+/*  color: #f1f1f1;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*  width: 40px;*/
+/*  height: 40px;*/
+/*  display: flex;*/
+/*  align-items: center;*/
+/*  justify-content: center;*/
+/*  align-self: center;*/
+/*  font-size: 20px;*/
+/*}*/
+
+/*.add-row:hover {*/
+/*  background-color: #222945;*/
+/*}*/
+
+/*.modal-buttons {*/
+/*  display: flex;*/
+/*  gap: 10px;*/
+/*  justify-content: flex-end;*/
+/*  margin-top: 10px;*/
+/*}*/
+
+/*.modal-buttons button {*/
+/*  padding: 8px 16px;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*}*/
+
+/*.modal-buttons button:first-child {*/
+/*  background-color: #2c365a;*/
+/*  color: white;*/
+/*}*/
+
+/*.modal-buttons button:first-child:hover {*/
+/*  background-color: #222945;*/
+/*}*/
+
+/*.modal-buttons button:last-child {*/
+/*  background-color: #c63f3e;*/
+/*  color: white;*/
+/*}*/
+
+/*.modal-buttons button:last-child:hover {*/
+/*  background-color: #b63a39;*/
+/*}*/
+
+/*.study {*/
+/*  display: flex;*/
+/*  flex-direction: column;*/
+/*  align-items: center;*/
+/*  justify-content: center;*/
+/*  min-height: 100vh;*/
+/*  padding: 20px;*/
+/*}*/
+
+/*.card-counter {*/
+/*  margin: 10px 0;*/
+/*  font-size: 16px;*/
+/*  color: #333;*/
+/*}*/
+
+/*.study-container {*/
+/*  perspective: 1000px;*/
+/*  width: 90%;*/
+/*  max-width: 160px;*/
+/*}*/
+
+/*.study-card {*/
+/*  background: #f1f1f1;*/
+/*  padding: 20px;*/
+/*  border-radius: 12px;*/
+/*  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);*/
+/*  width: 90%;*/
+/*  max-width: 160px;*/
+/*  min-height: 350px;*/
+/*  position: relative;*/
+/*  transition: transform 0.6s, opacity 0.3s;*/
+/*  transform-style: preserve-3d;*/
+/*  cursor: pointer;*/
+/*}*/
+
+/*.study-card.flipped {*/
+/*  transform: rotateY(180deg);*/
+/*}*/
+
+/*.study-card.swipe-left {*/
+/*  transform: translateX(-100%);*/
+/*  opacity: 0;*/
+/*}*/
+
+/*.study-card.swipe-right {*/
+/*  transform: translateX(100%);*/
+/*  opacity: 0;*/
+/*}*/
+
+/*.card-front,*/
+/*.card-back {*/
+/*    position: absolute;*/
+/*    width: 100%;*/
+/*    height: 100%;*/
+/*    backface-visibility: hidden;*/
+/*    display: flex;*/
+/*    align-items: center;*/
+/*    justify-content: center;*/
+/*    padding: 10px;*/
+/*    box-sizing: border-box;*/
+/*    text-align: center;*/
+/*    left: 0;*/
+/*    top: 0;*/
+/*}*/
+
+/*.card-front {*/
+/*  transform: rotateY(0deg);*/
+/*}*/
+
+/*.card-back {*/
+/*  transform: rotateY(180deg);*/
+/*}*/
+
+/*.card-content {*/
+/*    font-size: 18px;*/
+/*    word-wrap: break-word;*/
+/*    text-align: center;*/
+/*    width: 100%;*/
+/*    padding: 0 10px;*/
+/*    margin: 0;*/
+/*}*/
+
+/*.study-buttons {*/
+/*  display: flex;*/
+/*  gap: 10px;*/
+/*  flex-wrap: wrap;*/
+/*  justify-content: center;*/
+/*  margin-top: 20px;*/
+/*}*/
+
+/*.study-buttons button {*/
+/*  padding: 8px 16px;*/
+/*  border: none;*/
+/*  border-radius: 4px;*/
+/*  cursor: pointer;*/
+/*}*/
+
+/*.study-buttons button:last-child {*/
+/*  background-color: #c63f3e;*/
+/*  color: white;*/
+/*}*/
+
+/*.study-buttons button:last-child:hover {*/
+/*  background-color: #b63a39;*/
+/*}*/
+
+/*.language-select {*/
+/*  display: flex;*/
+/*  gap: 10px;*/
+/*  margin-top: 10px;*/
+/*  width: 100%;*/
+/*  max-width: 300px;*/
+/*  flex-wrap: wrap;*/
+/*}*/
+
+/*.language-select select {*/
+/*  padding: 8px;*/
+/*  border: 1px solid #ccc;*/
+/*  border-radius: 4px;*/
+/*  font-size: 16px;*/
+/*  width: 100%;*/
+/*  max-width: 145px;*/
+/*}*/
+
+/*@media (max-width: 600px) {*/
+/*  .App {*/
+/*    padding: 10px;*/
+/*  }*/
+
+/*  .create-deck input,*/
+/*  .modal-content,*/
+/*  .study-card,*/
+/*  .study-container,*/
+/*  .decks-container ul {*/
+/*    max-width: 100%;*/
+/*  }*/
+
+/*  .card-row {*/
+/*    flex-direction: column;*/
+/*    align-items: stretch;*/
+/*  }*/
+
+/*  .card-row input,*/
+/*  .card-row textarea {*/
+/*    width: 100%;*/
+/*  }*/
+
+/*  .card-row .remove-row {*/
+/*    align-self: flex-end;*/
+/*  }*/
+
+/*  .deck-item {*/
+/*    flex-direction: column;*/
+/*    align-items: stretch;*/
+/*    gap: 10px;*/
+/*  }*/
+
+/*  .deck-item span {*/
+/*    text-align: center;*/
+/*  }*/
+
+/*  .deck-actions {*/
+/*    justify-content: center;*/
+/*  }*/
+
+/*  .study-buttons {*/
+/*    flex-direction: column;*/
+/*    gap: 10px;*/
+/*  }*/
+/*}*/
+
 .App {
   text-align: center;
   padding: 20px;
+  max-width: 100%;
+  margin: 0 auto;
+  box-sizing: border-box;
   font-family: Arial, sans-serif;
 }
-input {
-  margin: 10px;
-  padding: 5px;
-  width: 200px;
+
+.create-deck {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-button {
-  padding: 5px 10px;
-  background-color: #007bff;
-  color: white;
+
+.create-deck input {
+  width: 100%;
+  max-width: 300px;
+  padding: 8px;
+  margin: 10px 0;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.create-deck button {
+  padding: 8px 16px;
+  background-color: #2c365a;
+  color: #f1f1f1;
   border: none;
-  border-radius: 5px;
+  border-radius: 4px;
   cursor: pointer;
 }
-button:hover {
-  background-color: #0056b3;
+
+.create-deck button:hover {
+  background-color: #222945;
 }
-ul {
+
+.create-deck label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 10px;
+  font-size: 16px;
+  width: auto;
+  max-width: none;
+  text-align: left;
+  flex-wrap: nowrap;
+  cursor: pointer;
+}
+
+.decks-container {
+  margin-top: 20px;
+}
+
+.decks-container ul {
   list-style: none;
   padding: 0;
+  max-width: 280px;
+  margin: 0 auto;
 }
-li {
+
+.deck-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f1f1f1;
+  color: #2c365a;
   margin: 5px 0;
+  border-radius: 4px;
+}
+
+.deck-item span {
+  flex-grow: 1;
+  text-align: left;
+  padding-right: 10px;
+}
+
+.deck-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.toggle-decks-button {
+  padding: 8px 16px;
+  background-color: #f1f1f1;
+  color: #2c365a;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toggle-decks-button:hover {
+  background-color: #cbcccc;
+}
+
+.add-cards-button {
+  padding: 6px 12px;
+  background-color: #2c365a;
+  color: #f1f1f1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.add-cards-button .plus-icon {
+  font-size: 16px;
+}
+
+.add-cards-button:hover {
+  background-color: #222945;
+}
+
+.study-button {
+  padding: 6px 12px;
+  background-color: #2c365a;
+  color: #f1f1f1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.study-button:hover {
+  background-color: #222945;
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 90%;
+  width: 280px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.card-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.translation-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.loading {
+  position: absolute;
+  right: 10px;
+  color: #888;
+}
+
+.card-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.card-row input,
+.card-row textarea {
+  flex: 1;
+  padding: 8px;
+  box-sizing: border-box;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  min-width: 100px;
+}
+
+.card-row input:disabled {
+  background-color: #f0f0f0;
+  cursor: not-allowed;
+  color: #666;
+}
+
+.card-row textarea {
+  resize: vertical;
+  min-height: 60px;
+  max-height: 100px;
+}
+
+.card-row .remove-row {
+  padding: 8px;
+  background-color: #c63f3e;
+  color: #f1f1f1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-row .remove-row:hover {
+  background-color: #b63a39;
+}
+
+.add-row {
+  padding: 8px;
+  background-color: #2c365a;
+  color: #f1f1f1;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  font-size: 20px;
+}
+
+.add-row:hover {
+  background-color: #222945;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.modal-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.modal-buttons button:first-child {
+  background-color: #2c365a;
+  color: white;
+}
+
+.modal-buttons button:first-child:hover {
+  background-color: #222945;
+}
+
+.modal-buttons button:last-child {
+  background-color: #c63f3e;
+  color: white;
+}
+
+.modal-buttons button:last-child:hover {
+  background-color: #b63a39;
+}
+
+.study {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.card-counter {
+  margin: 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.study-container {
+  perspective: 1000px;
+  width: 90%;
+  max-width: 160px;
+}
+
+.study-card {
+  background: #f1f1f1;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  width: 90%;
+  max-width: 160px;
+  min-height: 350px;
+  position: relative;
+  transition: transform 0.6s, opacity 0.3s;
+  transform-style: preserve-3d;
+  cursor: pointer;
+}
+
+.study-card.flipped {
+  transform: rotateY(180deg);
+}
+
+.study-card.swipe-left {
+  transform: translateX(-100%);
+  opacity: 0;
+}
+
+.study-card.swipe-right {
+  transform: translateX(100%);
+  opacity: 0;
+}
+
+.card-front,
+.card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  box-sizing: border-box;
+  text-align: center;
+  left: 0;
+  top: 0;
+}
+
+.card-front {
+  transform: rotateY(0deg);
+}
+
+.card-back {
+  transform: rotateY(180deg);
+}
+
+.card-content {
+  font-size: 18px;
+  word-wrap: break-word;
+  text-align: center;
+  width: 100%;
+  padding: 0 10px;
+  margin: 0;
+}
+
+.study-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.study-buttons button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.study-buttons button:last-child {
+  background-color: #c63f3e;
+  color: white;
+}
+
+.study-buttons button:last-child:hover {
+  background-color: #b63a39;
+}
+
+.language-select {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 300px;
+  flex-wrap: wrap;
+}
+
+.language-select select {
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  width: 100%;
+  max-width: 145px;
+}
+
+@media (max-width: 600px) {
+  .App {
+    padding: 10px;
+  }
+
+  .create-deck input,
+  .modal-content,
+  .study-card,
+  .study-container,
+  .decks-container ul {
+    max-width: 100%;
+  }
+
+  .card-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .card-row input,
+  .card-row textarea {
+    width: 100%;
+  }
+
+  .card-row input:disabled {
+    width: 100%;
+  }
+
+  .card-row .remove-row {
+    align-self: flex-end;
+  }
+
+  .deck-item {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .deck-item span {
+    text-align: center;
+  }
+
+  .deck-actions {
+    justify-content: center;
+  }
+
+  .study-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
 }

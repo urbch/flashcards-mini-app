@@ -1,47 +1,98 @@
 version: '3.8'
+
 services:
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
-      - "5173:5173"
-    volumes:
-      - ./frontend:/app  # Для Hot Reload
-      - /app/node_modules  # Игнорируем node_modules
+      - "5173:80"
     environment:
-      - NODE_ENV=development
-    stdin_open: true  # Интерактивный режим
-    tty: true         # Цветные логи
-    depends_on:
-      - api  # Зависимость от API
-
-  api:
-    build: ./api
-    env_file: .env
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-    restart: on-failure  # Добавлено для автоматического перезапуска
-
-  bot:
-    build: ./bot
-    env_file: .env  # Подключаем корневой .env
+      - REACT_APP_BACKEND_URL=http://api:8080
     depends_on:
       - api
+    networks:
+      - app-network
 
-  db:
-    image: postgres:15
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - translate
+    networks:
+      - app-network
+    volumes:
+      - ./api:/app
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - api
+    networks:
+      - app-network
+    volumes:
+      - ./bot:/app
+    command: python main.py
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
     environment:
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password  # Теперь совпадает с DATABASE_URL
+      - POSTGRES_PASSWORD=1234
       - POSTGRES_DB=flashcards
     volumes:
-      - db_data:/var/lib/postgresql/data
-    healthcheck:  # Добавлен healthcheck
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d flashcards" ]
       interval: 5s
       timeout: 5s
       retries: 5
 
+  translate:
+    image: libretranslate/libretranslate:v1.6.0
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    env_file:
+      - stack.env
+    volumes:
+      - libretranslate_api_keys:/app/db
+      - libretranslate_models:/home/libretranslate/.local:rw
+    tty: true
+    stdin_open: true
+    healthcheck:
+      test: ['CMD-SHELL', './venv/bin/python scripts/healthcheck.py']
+    environment:
+      - LT_LOAD_ONLY=ru,en
+    networks:
+      - app-network
+
 volumes:
-  db_data:
+  postgres_data:
+  libretranslate_models:
+  libretranslate_api_keys:
+
+networks:
+  app-network:
+    driver: bridge
