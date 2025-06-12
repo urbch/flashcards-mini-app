@@ -27,7 +27,6 @@ function App() {
   const [translatingRows, setTranslatingRows] = useState({});
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
-  const debounceTimeout = useRef(null);
   const lastTranslatedWords = useRef({});
 
   const fetchUserInfo = async (telegramId) => {
@@ -58,7 +57,7 @@ function App() {
 
   const fetchTranslation = async (word, sourceLang, targetLang, rowIndex) => {
     console.log('Translating:', { word, sourceLang, targetLang, rowIndex });
-    if (!word.trim() || !sourceLang || !targetLang || word.trim().length < 2) {
+    if (!word.trim() || !sourceLang || !targetLang) {
       setTranslatingRows(prev => ({ ...prev, [rowIndex]: false }));
       return '';
     }
@@ -106,7 +105,6 @@ function App() {
       const telegramIdFromUrl = urlParams.get('telegram_id');
 
       if (testMode) {
-        // Тестовый режим: используем фиктивного пользователя
         console.log('Running in test mode with default Telegram ID: 1');
         const testUser = { id: 1, first_name: 'Test User' };
         setUser(testUser);
@@ -142,51 +140,49 @@ function App() {
     fetchLanguages();
   }, []);
 
-  useEffect(() => {
-    if (!isLanguageDeckSelected || cardRows.length === 0 || !selectedDeck) return;
+  const handleWordChange = async (index, value, event) => {
+    const updatedRows = [...cardRows];
+    updatedRows[index] = { ...updatedRows[index], word: value };
 
-    if (debounceTimeout.current) {
-      clearTimeout(debounceTimeout.current);
+    // Очистка перевода, если слово пустое
+    if (!value.trim()) {
+      updatedRows[index] = { ...updatedRows[index], translation: '', isManuallyEdited: false };
+      lastTranslatedWords.current[index] = ''; // Сбрасываем кэш перевода
+      setCardRows(updatedRows);
+      return;
     }
 
-    debounceTimeout.current = setTimeout(async () => {
+    // Проверка на пробел или Enter
+    const triggerTranslation = event && (
+      event.key === ' ' ||
+      event.key === 'Enter' ||
+      event.type === 'blur'
+    );
+
+    if (triggerTranslation && value.trim().length >= 2 && !updatedRows[index].isManuallyEdited) {
       const deck = decks.find(d => d.id === selectedDeck);
       if (!deck || !deck.source_lang || !deck.target_lang) return;
 
-      let hasChanges = false;
-      const updatedRows = [...cardRows];
-
-      for (let index = 0; index < cardRows.length; index++) {
-        const row = cardRows[index];
-        const currentCard = cards.find(c => c.id === row.id);
-        const needsTranslation =
-          row.word.trim().length >= 2 &&
-          !translatingRows[index] &&
-          (!row.translation ||
-            (currentCard && row.word.trim() !== currentCard.word) ||
-            row.translation.startsWith('Ошибка перевода'));
-
-        if (needsTranslation) {
-          const translation = await fetchTranslation(
-            row.word,
-            deck.source_lang,
-            deck.target_lang,
-            index
-          );
-          if (translation && !translation.startsWith('Ошибка перевода')) {
-            updatedRows[index] = { ...row, translation };
-            hasChanges = true;
-          }
-        }
-      }
-
-      if (hasChanges) {
+      const translation = await fetchTranslation(
+        value.trim(),
+        deck.source_lang,
+        deck.target_lang,
+        index
+      );
+      if (translation && !translation.startsWith('Ошибка перевода')) {
+        updatedRows[index] = { ...updatedRows[index], translation, isManuallyEdited: false };
         setCardRows(updatedRows);
       }
-    }, 500);
+    } else {
+      setCardRows(updatedRows);
+    }
+  };
 
-    return () => clearTimeout(debounceTimeout.current);
-  }, [cardRows, isLanguageDeckSelected, selectedDeck, decks, translatingRows, cards]);
+  const handleTranslationChange = (index, value) => {
+    const updatedRows = [...cardRows];
+    updatedRows[index] = { ...updatedRows[index], translation: value, isManuallyEdited: true };
+    setCardRows(updatedRows);
+  };
 
   const fetchDecks = async () => {
     if (!user?.id) return;
@@ -280,7 +276,7 @@ function App() {
       setCards(data);
       setCardRows(data.map(card => (
         deck.is_language_deck
-          ? { id: card.id, word: card.word, translation: card.translation || '' }
+          ? { id: card.id, word: card.word, translation: card.translation || '', isManuallyEdited: false }
           : { id: card.id, term: card.term, definition: card.definition }
       )));
     } catch (error) {
@@ -325,7 +321,7 @@ function App() {
 
   const addNewCardRow = () => {
     const newRow = isLanguageDeckSelected
-      ? { word: '', translation: '' }
+      ? { word: '', translation: '', isManuallyEdited: false }
       : { term: '', definition: '' };
     setCardRows(prev => [...prev, newRow]);
   };
@@ -533,7 +529,7 @@ function App() {
     return (
       <div className="App study">
         <h1>Изучение карточек</h1>
-        <p className="card-counter">Карточка {currentCardIndex + 1} из {cards.length}</p>
+        <p className="">{currentCardIndex + 1} из {cards.length}</p>
         {cards.length > 0 ? (
           <div className="study-container" {...swipeHandlers}>
             <div
@@ -659,14 +655,16 @@ function App() {
                       <input
                         type="text"
                         value={row.word}
-                        onChange={(e) => updateCardRow(index, 'word', e.target.value)}
+                        onChange={(e) => handleWordChange(index, e.target.value, e)}
+                        onKeyDown={(e) => handleWordChange(index, row.word, e)}
+                        onBlur={(e) => handleWordChange(index, row.word, e)}
                         placeholder="Слово"
                       />
                       <div className="translation-container">
                         <input
                           type="text"
                           value={translatingRows[index] ? row.translation || '' : (row.translation || '')}
-                          onChange={(e) => updateCardRow(index, 'translation', e.target.value)}
+                          onChange={(e) => handleTranslationChange(index, e.target.value)}
                           placeholder={translatingRows[index] ? 'Перевод...' : 'Перевод'}
                           disabled={translatingRows[index]}
                         />
