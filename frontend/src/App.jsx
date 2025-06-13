@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useSwipeable } from 'react-swipeable';
 import ConfirmModal from './ConfirmModal';
+import Toast from './Toast';
 import './App.css';
 
 function App() {
@@ -31,9 +32,20 @@ function App() {
     message: '',
     onConfirm: () => {},
   });
+  const [toasts, setToasts] = useState([]);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
   const lastTranslatedWords = useRef({});
+  
+  const showToast = (message, type = 'info', duration = 3000) => {
+    const id = Date.now(); // Уникальный ID для тоста
+    setToasts((prev) => [...prev, { id, message, type, duration }]);
+  };
+
+  const removeToast = (id) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
 
   const fetchUserInfo = async (telegramId) => {
     try {
@@ -201,16 +213,17 @@ function App() {
       setDecks(data);
     } catch (error) {
       console.error('Error fetching decks:', error);
+      showToast(`Ошибка загрузки колод: ${error.message}`, 'error');
     }
   };
 
   const createDeck = async () => {
     if (!user?.id || !deckName.trim()) {
-      alert('Введите название колоды');
+      showToast('Введите название колоды', 'warning');
       return;
     }
     if (isLanguageDeck && (!sourceLang || !targetLang)) {
-      alert('Выберите исходный и целевой языки для языковой колоды');
+      showToast('Выберите исходный и целевой языки для языковой колоды', 'warning');
       return;
     }
     const payload = {
@@ -242,7 +255,7 @@ function App() {
       if (showDecks) await fetchDecks();
     } catch (error) {
       console.error('Error creating deck:', error);
-      alert(`Ошибка при создании колоды: ${error.message}`);
+      showToast(`Ошибка при создании колоды: ${error.message}`, 'error');
     }
   };
 
@@ -268,10 +281,10 @@ const deleteDeck = async (deckId) => {
             setShowCardModal(false);
             setStudyMode(false);
           }
-          alert('Колода успешно удалена');
+          showToast('Колода успешно удалена', 'success');
         } catch (error) {
           console.error('Error deleting deck:', error);
-          alert(`Ошибка при удалении колоды: ${error.message}`);
+          showToast(`Ошибка при удалении колоды: ${error.message}`, 'error');
         } finally {
           setConfirmModal({ isOpen: false, message: '', onConfirm: () => {} });
         }
@@ -408,7 +421,10 @@ const deleteDeck = async (deckId) => {
         : !row.term.trim() || !row.definition.trim()
     ));
     if (invalidRows.length > 0) {
-      alert('Заполните все поля для новых карточек (слово и перевод или термин и определение).');
+      showToast(
+        'Заполните все поля для новых карточек (слово и перевод или термин и определение)',
+        'warning'
+      );
       return;
     }
 
@@ -495,10 +511,10 @@ const deleteDeck = async (deckId) => {
       setCardRows([]);
       setShowCardModal(false);
       setTranslatingRows({});
-      alert('Карточки успешно сохранены!');
+      showToast('Карточки успешно сохранены!', 'success');
     } catch (error) {
       console.error('Error saving cards:', error);
-      alert(`Ошибка при сохранении карточек: ${error.message}`);
+      showToast(`Ошибка при сохранении карточек: ${error.message}`, 'error');
     }
   };
 
@@ -747,13 +763,24 @@ const deleteDeck = async (deckId) => {
           </div>
         </div>
       )}
-      {/* Добавляем ConfirmModal */}
       <ConfirmModal
         isOpen={confirmModal.isOpen}
         message={confirmModal.message}
         onConfirm={confirmModal.onConfirm}
         onCancel={confirmModal.onCancel}
       />
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <Toast
+            key={toast.id}
+            id={toast.id}
+            message={toast.message}
+            type={toast.type}
+            duration={toast.duration}
+            onClose={removeToast}
+          />
+        ))}
+      </div>
     </div>
   );
 }

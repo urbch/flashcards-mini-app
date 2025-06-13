@@ -893,3 +893,22 @@
 .delete-button:hover {
   background-color: #d9363e;
 }
+
+.modal {
+  z-index: 100;
+}
+
+.modal-overlay {
+  z-index: 1000;
+}
+
+/* Стили для контейнера тостов */
+.toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
