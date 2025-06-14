@@ -35,7 +35,6 @@ function App() {
   const [toasts, setToasts] = useState([]);
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
-  console.log('API_URL:', API_URL);
   const lastTranslatedWords = useRef({});
   
   const showToast = (message, type = 'info', duration = 3000) => {
@@ -121,28 +120,21 @@ function App() {
   useEffect(() => {
     const setUserData = async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const testMode = urlParams.get('test_mode') === 'false';
+      const testMode = urlParams.get('test_mode') === 'true';
       const telegramIdFromUrl = urlParams.get('telegram_id');
 
       if (testMode) {
         console.log('Running in test mode with default Telegram ID: 1');
-        const testUser = { id: 1, first_name: 'Test User' };
-        setUser(testUser);
-        return;
-      }
-
-      if (!TelegramWebApp.initData) {
-        console.warn('Not running in Telegram WebView, falling back to default user');
-        const defaultUser = { id: 1, first_name: 'Test User' };
-        setUser(defaultUser);
+        setUser({ id: 1, first_name: 'Test User' });
         return;
       }
 
       TelegramWebApp.ready();
-      const initData = TelegramWebApp.initDataUnsafe || {};
+
+      const initData = TelegramWebApp.initDataUnsafe;
       console.log('InitDataUnsafe:', initData);
 
-      if (initData.user) {
+      if (initData?.user) {
         setUser(initData.user);
       } else if (telegramIdFromUrl) {
         console.log('Using telegram_id from URL:', telegramIdFromUrl);
@@ -150,9 +142,7 @@ function App() {
         const userInfo = await fetchUserInfo(telegramId);
         setUser(userInfo);
       } else {
-        console.warn('No Telegram user data, using default user');
-        const defaultUser = { id: 1, first_name: 'Test User' };
-        setUser(defaultUser);
+        showToast('Ошибка загрузки данных Telegram. Пожалуйста, перезапустите бота.', 'error');
       }
     };
 
