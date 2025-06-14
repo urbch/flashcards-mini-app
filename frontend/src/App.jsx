@@ -34,7 +34,8 @@ function App() {
   });
   const [toasts, setToasts] = useState([]);
 
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  console.log('API_URL:', API_URL);
   const lastTranslatedWords = useRef({});
   
   const showToast = (message, type = 'info', duration = 3000) => {
@@ -71,6 +72,7 @@ function App() {
     } catch (error) {
       console.error('Error fetching languages:', error);
     }
+    console.log('API_URL:', API_URL);
   };
 
   const fetchTranslation = async (word, sourceLang, targetLang, rowIndex) => {
@@ -119,7 +121,7 @@ function App() {
   useEffect(() => {
     const setUserData = async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const testMode = urlParams.get('test_mode') === 'true';
+      const testMode = urlParams.get('test_mode') === 'false';
       const telegramIdFromUrl = urlParams.get('telegram_id');
 
       if (testMode) {

@@ -879,7 +879,7 @@
 }
 
 .delete-button {
-  background-color: #ff4d4f;
+  background-color: #c63f3e;
   color: #fff;
   border: 1px solid #d3d4e3;
   border-radius: 8px;
@@ -891,7 +891,7 @@
 }
 
 .delete-button:hover {
-  background-color: #d9363e;
+  background-color: #b63a39;
 }
 
 .modal {
