@@ -37,7 +37,7 @@ INFO_TEXT = """
 async def start(message: Message):
     logger.info(f"Received /start command from user: {message.from_user.id}")
     # Динамически добавляем telegram_id в URL
-    web_app_url = f"https://ee0e-194-58-154-209.ngrok-free.app?telegram_id={message.from_user.id}"
+    web_app_url = f"https://cccd-194-58-154-209.ngrok-free.app?telegram_id={message.from_user.id}"
     keyboard = types.ReplyKeyboardMarkup(
         keyboard=[
             [types.KeyboardButton(
