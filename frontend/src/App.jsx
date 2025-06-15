@@ -34,7 +34,7 @@ function App() {
   });
   const [toasts, setToasts] = useState([]);
 
-  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+  const API_URL = import.meta.env.VITE_API_URL || 'http://5.159.101.115/api';
   const lastTranslatedWords = useRef({});
 
   const showToast = (message, type = 'info', duration = 3000) => {

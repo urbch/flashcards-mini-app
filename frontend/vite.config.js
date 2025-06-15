@@ -12,6 +12,7 @@ export default defineConfig({
       'cccd-194-58-154-209.ngrok-free.app', //фронт
       'a067-194-58-154-209.ngrok-free.app', //бэкенд
       'localhost', // Для локальной разработки
+      '5.159.101.115',
     ],
   },
 });
