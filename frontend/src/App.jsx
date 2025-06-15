@@ -36,7 +36,7 @@ function App() {
 
   const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
   const lastTranslatedWords = useRef({});
-  
+
   const showToast = (message, type = 'info', duration = 3000) => {
     const id = Date.now(); // Уникальный ID для тоста
     setToasts((prev) => [...prev, { id, message, type, duration }]);
@@ -559,221 +559,309 @@ const deleteDeck = async (deckId) => {
   }
 
   if (studyMode && finishedStudy) {
-    const total = cards.length;
-    const correctPercent = total > 0 ? Math.round((correctCount / total) * 100) : 0;
     return (
-      <div className="App study">
-        <h1>Результаты изучения</h1>
-        <p>Всего карточек: <strong>{total}</strong></p>
-        <p>Запомнили: <strong>{correctCount}</strong></p>
-        <p>Не запомнили: <strong>{incorrectCount}</strong></p>
-        <p>Процент правильных: <strong>{correctPercent}%</strong></p>
-        <div className="study-buttons">
-          <button onClick={exitStudy}>Вернуться к списку колод</button>
+        <div className="study-results">
+          <h2>Результаты изучения</h2>
+
+          <div className="results-stats">
+            <div className="stat-card correct-stat">
+              <span className="stat-value">{correctCount}</span>
+              <span className="stat-label">Правильно</span>
+            </div>
+            <div className="stat-card incorrect-stat">
+              <span className="stat-value">{incorrectCount}</span>
+              <span className="stat-label">Неправильно</span>
+            </div>
+            <div className="stat-card total-stat">
+              <span className="stat-value">{cards.length}</span>
+              <span className="stat-label">Всего</span>
+            </div>
+          </div>
+
+          <div className="results-progress">
+            <div className="progress-bar">
+              <div
+                  className="progress-fill"
+                  style={{
+                    width: `${(correctCount / cards.length) * 100}%`
+                  }}
+              ></div>
+            </div>
+            <span className="progress-percent">
+          {Math.round((correctCount / cards.length) * 100)}% выучено
+        </span>
+          </div>
+
+          <button onClick={exitStudy} className="primary-button">
+            Вернуться к колодам
+          </button>
         </div>
-      </div>
     );
   }
 
   if (studyMode && !finishedStudy) {
     return (
-      <div className="App study">
-        <h1>Изучение карточек</h1>
-        <p className="">{currentCardIndex + 1} из {cards.length}</p>
-        {cards.length > 0 ? (
-          <div className="study-container" {...swipeHandlers}>
-            <div
-              className={`
+        <div className="App study">
+          <h1>Изучение карточек</h1>
+          <p className="card-counter">{currentCardIndex + 1} из {cards.length}</p>
+          {cards.length > 0 ? (
+              <div className="study-container" {...swipeHandlers}>
+                <div
+                    className={`
                 study-card
                 ${isFlipped ? 'flipped' : ''}
                 ${swipeDirection ? `swipe-${swipeDirection}` : ''}
               `}
-              onClick={toggleFlip}
-            >
-              <div className="card-front">
-                <div className="card-content">
-                  <p>{cards[currentCardIndex].term}</p>
+                    onClick={toggleFlip}
+                >
+                  <div className="card-front">
+                    <div className="card-content">
+                      <p>{cards[currentCardIndex].term}</p>
+                    </div>
+                  </div>
+                  <div className="card-back">
+                    <div className="card-content">
+                      <p>{cards[currentCardIndex].definition}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="card-back">
-                <div className="card-content">
-                  <p>{cards[currentCardIndex].definition}</p>
-                </div>
-              </div>
-            </div>
+          ) : (
+              <p>Добавьте карточки, чтобы начать изучение.</p>
+          )}
+          <p>Свайп влево — не запомнил, вправо — запомнил.</p>
+          <div className="study-buttons">
+            <button onClick={exitStudy}>Завершить</button>
           </div>
-        ) : (
-          <p>Добавьте карточки, чтобы начать изучение.</p>
-        )}
-        <p>Свайп влево — не запомнил, вправо — запомнил.</p>
-        <div className="study-buttons">
-          <button onClick={exitStudy}>Завершить</button>
         </div>
-      </div>
     );
   }
 
   return (
-    <div className="App">
-      <h1>Flashcards Mini App</h1>
-      <p>Привет, {user.first_name}!</p>
-      <div className="create-deck">
-        <input
-          type="text"
-          value={deckName}
-          onChange={(e) => setDeckName(e.target.value)}
-          placeholder="Название колоды"
-        />
-        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
-          <input
-            type="checkbox"
-            checked={isLanguageDeck}
-            onChange={(e) => setIsLanguageDeck(e.target.checked)}
-          />
-          🌐
-        </label>
-        {isLanguageDeck && (
-          <div className="language-select">
-            <select
-              value={sourceLang}
-              onChange={(e) => setSourceLang(e.target.value)}
-              required
-            >
-              <option value="">исходный язык</option>
-              {languages.map(lang => (
-                <option key={lang.code} value={lang.code}>{lang.name}</option>
-              ))}
-            </select>
-            <select
-              value={targetLang}
-              onChange={(e) => setTargetLang(e.target.value)}
-              required
-            >
-              <option value="">целевой язык</option>
-              {languages.map(lang => (
-                <option key={lang.code} value={lang.code}>{lang.name}</option>
-              ))}
-            </select>
-          </div>
-        )}
-        <button onClick={createDeck}>Создать колоду</button>
-      </div>
-      <div>
-        <button className="toggle-decks-button" onClick={handleShowDecks}>
-          {showDecks ? 'Скрыть колоды' : 'Мои колоды'}
-        </button>
-      </div>
-      {showDecks && (
-        <div className="decks-container">
-          <h2>Ваши колоды:</h2>
-          <ul>
-            {decks.length > 0 ? (
-              decks.map((deck) => (
-                <li key={deck.id} className="deck-item">
-                  <span>{deck.name} {deck.is_language_deck ? '🌐' : ''}</span>
-                  <div className="deck-actions">
-                    <button
-                      className="add-cards-button"
-                      onClick={() => openAddCardsModal(deck.id)}
-                    >
-                      Карточки
-                    </button>
-                    <button
-                      className="study-button"
-                      onClick={() => startStudy(deck.id)}
-                    >
-                      Изучить
-                    </button>
-                    <button
-                      className="delete-button"
-                      onClick={() => deleteDeck(deck.id)}
-                    >
-                      Удалить
-                    </button>
-                  </div>
-                </li>
-              ))
-            ) : (
-              <p>У вас пока нет колод.</p>
-            )}
-          </ul>
-        </div>
-      )}
-      {showCardModal && selectedDeck && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Редактировать карточки</h2>
-            <div className="card-form">
-              {cardRows.map((row, index) => (
-                <div key={row.id || `new-${index}`} className="card-row">
-                  {isLanguageDeckSelected ? (
-                    <>
-                      <input
-                        type="text"
-                        value={row.word}
-                        onChange={(e) => handleWordChange(index, e.target.value, e)}
-                        onKeyDown={(e) => handleWordChange(index, row.word, e)}
-                        onBlur={(e) => handleWordChange(index, row.word, e)}
-                        placeholder="Слово"
-                      />
-                      <div className="translation-container">
-                        <input
-                          type="text"
-                          value={translatingRows[index] ? row.translation || '' : (row.translation || '')}
-                          onChange={(e) => handleTranslationChange(index, e.target.value)}
-                          placeholder={translatingRows[index] ? 'Перевод...' : 'Перевод'}
-                          disabled={translatingRows[index]}
-                        />
-                        {translatingRows[index] && <span className="loading">...</span>}
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <input
-                        type="text"
-                        value={row.term}
-                        onChange={(e) => updateCardRow(index, 'term', e.target.value)}
-                        placeholder="Термин"
-                      />
-                      <textarea
-                        value={row.definition}
-                        onChange={(e) => updateCardRow(index, 'definition', e.target.value)}
-                        placeholder="Определение"
-                        rows="3"
-                      />
-                    </>
-                  )}
-                  <button className="remove-row" onClick={() => removeCardRow(index)}>×</button>
-                </div>
-              ))}
-              <button className="add-row" onClick={addNewCardRow}>+</button>
-              <div className="modal-buttons">
-                <button onClick={saveCards}>Сохранить</button>
-                <button onClick={closeModal}>Закрыть</button>
+      <div className="App">
+        <header className="app-header">
+          <h1 className="app-title">FlashCards</h1>
+        </header>
+
+        <div className="main-container">
+          <div className="section-container">
+            <h2 className="section-title">Создать новую колоду</h2>
+            <div className="deck-creation-card">
+              <div className="form-group">
+                <input
+                    type="text"
+                    value={deckName}
+                    onChange={(e) => setDeckName(e.target.value)}
+                    placeholder="Введите название колоды"
+                    className="form-input deck-name-input"
+                />
               </div>
+
+              <div className="deck-type-selector">
+                <label className="checkbox-label large">
+                  <input
+                      type="checkbox"
+                      checked={isLanguageDeck}
+                      onChange={(e) => setIsLanguageDeck(e.target.checked)}
+                      className="checkbox-input"
+                  />
+                  <span className="checkbox-custom"></span>
+                  <span className="checkbox-text">Языковая колода</span>
+                </label>
+              </div>
+
+              {isLanguageDeck && (
+                  <div className="language-selectors">
+                    <div className="form-group">
+                      <select
+                          value={sourceLang}
+                          onChange={(e) => setSourceLang(e.target.value)}
+                          className="form-select language-select"
+                      >
+                        <option value="">Выберите исходный язык</option>
+                        {languages.map(lang => (
+                            <option key={lang.code} value={lang.code}>{lang.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group">
+                      <select
+                          value={targetLang}
+                          onChange={(e) => setTargetLang(e.target.value)}
+                          className="form-select language-select"
+                      >
+                        <option value="">Выберите целевой язык</option>
+                        {languages.map(lang => (
+                            <option key={lang.code} value={lang.code}>{lang.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+              )}
+
+              <button
+                  onClick={createDeck}
+                  className="primary-button create-button large"
+              >
+                Создать колоду
+              </button>
             </div>
           </div>
+
+          <div className="section-container decks-section">
+            <div className="section-header">
+              <h2 className="section-title">Мои колоды</h2>
+              <button
+                  onClick={handleShowDecks}
+                  className={`toggle-button large ${showDecks ? 'active' : ''}`}
+                  aria-expanded={showDecks}
+              >
+                {showDecks ? (
+                    <>
+                      <span className="icon">▼</span> Скрыть
+                    </>
+                ) : (
+                    <>
+                      <span className="icon">►</span> Показать
+                    </>
+                )}
+              </button>
+            </div>
+
+            {showDecks && (
+                <div className="decks-container">
+                  {decks.length > 0 ? (
+                      <div className="decks-grid">
+                        {decks.map((deck) => (
+                            <div key={deck.id} className="deck-card">
+                              <div className="deck-info">
+                                <h3 className="deck-name">
+                                  {deck.name}
+                                  {deck.is_language_deck && <span className="language-badge">🌐</span>}
+                                </h3>
+                                {deck.is_language_deck && (
+                                    <div className="deck-languages">
+                            <span className="language-pair">
+                              {languages.find(l => l.code === deck.source_lang)?.name} →
+                              {languages.find(l => l.code === deck.target_lang)?.name}
+                            </span>
+                                    </div>
+                                )}
+                              </div>
+
+                              <div className="deck-actions">
+                                <button
+                                    onClick={() => openAddCardsModal(deck.id)}
+                                    className="action-button edit-button"
+                                    aria-label="Редактировать карточки"
+                                >
+                                  <span className="button-icon">Карточки</span>
+                                </button>
+                                <button
+                                    onClick={() => startStudy(deck.id)}
+                                    className="action-button study-button"
+                                    aria-label="Учить карточки"
+                                >
+                                  <span className="button-icon">Изучение</span>
+                                </button>
+                                <button
+                                    onClick={() => deleteDeck(deck.id)}
+                                    className="action-button delete-button"
+                                    aria-label="Удалить колоду"
+                                >
+                                  <span className="button-icon">🗑️</span>
+                                </button>
+                              </div>
+                            </div>
+                        ))}
+                      </div>
+                  ) : (
+                      <div className="empty-state">
+                        <p>У вас пока нет колод. Создайте первую!</p>
+                      </div>
+                  )}
+                </div>
+            )}
+          </div>
         </div>
-      )}
-      <ConfirmModal
-        isOpen={confirmModal.isOpen}
-        message={confirmModal.message}
-        onConfirm={confirmModal.onConfirm}
-        onCancel={confirmModal.onCancel}
-      />
-      <div className="toast-container">
-        {toasts.map((toast) => (
-          <Toast
-            key={toast.id}
-            id={toast.id}
-            message={toast.message}
-            type={toast.type}
-            duration={toast.duration}
-            onClose={removeToast}
-          />
-        ))}
+
+        {showCardModal && selectedDeck && (
+            <div className="modal">
+              <div className="modal-content">
+                <h2>Редактировать карточки</h2>
+                <div className="card-form">
+                  {cardRows.map((row, index) => (
+                      <div key={row.id || `new-${index}`} className="card-row">
+                        {isLanguageDeckSelected ? (
+                            <>
+                              <input
+                                  type="text"
+                                  value={row.word}
+                                  onChange={(e) => handleWordChange(index, e.target.value, e)}
+                                  onKeyDown={(e) => handleWordChange(index, row.word, e)}
+                                  onBlur={(e) => handleWordChange(index, row.word, e)}
+                                  placeholder="Слово"
+                              />
+                              <div className="translation-container">
+                                <input
+                                    type="text"
+                                    value={translatingRows[index] ? row.translation || '' : (row.translation || '')}
+                                    onChange={(e) => handleTranslationChange(index, e.target.value)}
+                                    placeholder={translatingRows[index] ? 'Перевод...' : 'Перевод'}
+                                    disabled={translatingRows[index]}
+                                />
+                                {translatingRows[index] && <span className="loading">...</span>}
+                              </div>
+                            </>
+                        ) : (
+                            <>
+                              <input
+                                  type="text"
+                                  value={row.term}
+                                  onChange={(e) => updateCardRow(index, 'term', e.target.value)}
+                                  placeholder="Термин"
+                              />
+                              <textarea
+                                  value={row.definition}
+                                  onChange={(e) => updateCardRow(index, 'definition', e.target.value)}
+                                  placeholder="Определение"
+                                  rows="3"
+                              />
+                            </>
+                        )}
+                        <button className="remove-row" onClick={() => removeCardRow(index)}>×</button>
+                      </div>
+                  ))}
+                  <button className="add-row" onClick={addNewCardRow}>+</button>
+                  <div className="modal-buttons">
+                    <button onClick={saveCards}>Сохранить</button>
+                    <button onClick={closeModal}>Закрыть</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+        )}
+
+        <ConfirmModal
+            isOpen={confirmModal.isOpen}
+            message={confirmModal.message}
+            onConfirm={confirmModal.onConfirm}
+            onCancel={confirmModal.onCancel}
+        />
+
+        <div className="toast-container">
+          {toasts.map((toast) => (
+              <Toast
+                  key={toast.id}
+                  id={toast.id}
+                  message={toast.message}
+                  type={toast.type}
+                  duration={toast.duration}
+                  onClose={removeToast}
+              />
+          ))}
+        </div>
       </div>
-    </div>
   );
 }
 
