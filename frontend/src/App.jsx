@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useSwipeable } from 'react-swipeable';
 import ConfirmModal from './ConfirmModal';
@@ -38,7 +38,7 @@ function App() {
   const lastTranslatedWords = useRef({});
 
   const showToast = (message, type = 'info', duration = 3000) => {
-    const id = Date.now(); // Уникальный ID для тоста
+    const id = Date.now();
     setToasts((prev) => [...prev, { id, message, type, duration }]);
   };
 
@@ -46,8 +46,7 @@ function App() {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-
-  const fetchUserInfo = async (telegramId) => {
+  const fetchUserInfo = useCallback(async (telegramId) => {
     try {
       const response = await fetch(`${API_URL}/user/${telegramId}/`, {
         headers: { 'ngrok-skip-browser-warning': '69420' },
@@ -58,9 +57,9 @@ function App() {
       console.error('Error fetching user info:', error);
       return { id: telegramId, first_name: 'Guest' };
     }
-  };
+  }, [API_URL]);
 
-  const fetchLanguages = async () => {
+  const fetchLanguages = useCallback(async () => {
     try {
       const response = await fetch(`${API_URL}/languages/`, {
         headers: { 'ngrok-skip-browser-warning': '69420' },
@@ -72,7 +71,7 @@ function App() {
       console.error('Error fetching languages:', error);
     }
     console.log('API_URL:', API_URL);
-  };
+  }, [API_URL]);
 
   const fetchTranslation = async (word, sourceLang, targetLang, rowIndex) => {
     console.log('Translating:', { word, sourceLang, targetLang, rowIndex });
@@ -148,25 +147,23 @@ function App() {
 
     setUserData();
     fetchLanguages();
-  }, []);
+  }, [fetchUserInfo, fetchLanguages]);
 
   const handleWordChange = async (index, value, event) => {
     const updatedRows = [...cardRows];
     updatedRows[index] = { ...updatedRows[index], word: value };
 
-    // Очистка перевода, если слово пустое
     if (!value.trim()) {
       updatedRows[index] = { ...updatedRows[index], translation: '', isManuallyEdited: false };
-      lastTranslatedWords.current[index] = ''; // Сбрасываем кэш перевода
+      lastTranslatedWords.current[index] = '';
       setCardRows(updatedRows);
       return;
     }
 
-    // Проверка на пробел или Enter
     const triggerTranslation = event && (
-      event.key === ' ' ||
-      event.key === 'Enter' ||
-      event.type === 'blur'
+        event.key === ' ' ||
+        event.key === 'Enter' ||
+        event.type === 'blur'
     );
 
     if (triggerTranslation && value.trim().length >= 1 && !updatedRows[index].isManuallyEdited) {
@@ -174,10 +171,10 @@ function App() {
       if (!deck || !deck.source_lang || !deck.target_lang) return;
 
       const translation = await fetchTranslation(
-        value.trim(),
-        deck.source_lang,
-        deck.target_lang,
-        index
+          value.trim(),
+          deck.source_lang,
+          deck.target_lang,
+          index
       );
       if (translation && !translation.startsWith('Ошибка перевода')) {
         updatedRows[index] = { ...updatedRows[index], translation, isManuallyEdited: false };
@@ -239,6 +236,7 @@ function App() {
         throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
       }
       const newDeck = await response.json();
+      showToast(`Колода "${newDeck.name}" успешно создана!`, 'success');
       setDeckName('');
       setIsLanguageDeck(false);
       setSourceLang('');
@@ -251,8 +249,7 @@ function App() {
     }
   };
 
-const deleteDeck = async (deckId) => {
-    // Открываем кастомное модальное окно вместо window.confirm
+  const deleteDeck = async (deckId) => {
     setConfirmModal({
       isOpen: true,
       message: 'Вы уверены, что хотите удалить эту колоду? Все карточки в ней будут удалены.',
@@ -322,9 +319,9 @@ const deleteDeck = async (deckId) => {
       const data = await response.json();
       setCards(data);
       setCardRows(data.map(card => (
-        deck.is_language_deck
-          ? { id: card.id, word: card.word, translation: card.translation || '', isManuallyEdited: false }
-          : { id: card.id, term: card.term, definition: card.definition }
+          deck.is_language_deck
+              ? { id: card.id, word: card.word, translation: card.translation || '', isManuallyEdited: false }
+              : { id: card.id, term: card.term, definition: card.definition }
       )));
     } catch (error) {
       console.error('Error fetching cards:', error);
@@ -356,9 +353,9 @@ const deleteDeck = async (deckId) => {
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const data = await response.json();
       setCards(data.map(card => (
-        deck.is_language_deck
-          ? { id: card.id, term: card.word, definition: card.translation }
-          : card
+          deck.is_language_deck
+              ? { id: card.id, term: card.word, definition: card.translation }
+              : card
       )));
     } catch (error) {
       console.error('Error fetching cards:', error);
@@ -368,8 +365,8 @@ const deleteDeck = async (deckId) => {
 
   const addNewCardRow = () => {
     const newRow = isLanguageDeckSelected
-      ? { word: '', translation: '', isManuallyEdited: false }
-      : { term: '', definition: '' };
+        ? { word: '', translation: '', isManuallyEdited: false }
+        : { term: '', definition: '' };
     setCardRows(prev => [...prev, newRow]);
   };
 
@@ -408,77 +405,77 @@ const deleteDeck = async (deckId) => {
     if (!deck) return;
 
     const invalidRows = cardRows.filter(row => (
-      isLanguageDeckSelected
-        ? !row.word.trim() || !row.translation?.trim()
-        : !row.term.trim() || !row.definition.trim()
+        isLanguageDeckSelected
+            ? !row.word.trim() || !row.translation?.trim()
+            : !row.term.trim() || !row.definition.trim()
     ));
     if (invalidRows.length > 0) {
       showToast(
-        'Заполните все поля для новых карточек (слово и перевод или термин и определение)',
-        'warning'
+          'Заполните все поля для новых карточек (слово и перевод или термин и определение)',
+          'warning'
       );
       return;
     }
 
     const newCards = cardRows.filter(row => !row.id);
     const updatedCards = cardRows.filter(row => row.id && (
-      isLanguageDeckSelected
-        ? row.word.trim() !== cards.find(c => c.id === row.id)?.word || row.translation?.trim() !== cards.find(c => c.id === row.id)?.translation
-        : row.term.trim() !== cards.find(c => c.id === row.id)?.term || row.definition.trim() !== cards.find(c => c.id === row.id)?.definition
+        isLanguageDeckSelected
+            ? row.word.trim() !== cards.find(c => c.id === row.id)?.word || row.translation?.trim() !== cards.find(c => c.id === row.id)?.translation
+            : row.term.trim() !== cards.find(c => c.id === row.id)?.term || row.definition.trim() !== cards.find(c => c.id === row.id)?.definition
     ));
 
     try {
       const endpoint = isLanguageDeckSelected ? '/lang_cards/' : '/cards/';
       const createPromises = newCards.map(card =>
-        fetch(`${API_URL}${endpoint}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': '69420',
-          },
-          body: JSON.stringify(
-            isLanguageDeckSelected
-              ? {
-                deck_id: selectedDeck,
-                word: card.word.trim(),
-                source_lang: deck.source_lang,
-                target_lang: deck.target_lang,
-                translation: card.translation?.trim() || null
-              }
-              : {
-                deck_id: selectedDeck,
-                term: card.term.trim(),
-                definition: card.definition.trim(),
-              }
-          ),
-        }).then(async response => {
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
-          }
-          return response.json();
-        })
+          fetch(`${API_URL}${endpoint}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': '69420',
+            },
+            body: JSON.stringify(
+                isLanguageDeckSelected
+                    ? {
+                      deck_id: selectedDeck,
+                      word: card.word.trim(),
+                      source_lang: deck.source_lang,
+                      target_lang: deck.target_lang,
+                      translation: card.translation?.trim() || null
+                    }
+                    : {
+                      deck_id: selectedDeck,
+                      term: card.term.trim(),
+                      definition: card.definition.trim(),
+                    }
+            ),
+          }).then(async response => {
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
+            }
+            return response.json();
+          })
       );
 
       const updatePromises = updatedCards.map(card =>
-        fetch(`${API_URL}${isLanguageDeckSelected ? '/lang_cards/' : '/cards/'}${card.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': '69420',
-          },
-          body: JSON.stringify(
-            isLanguageDeckSelected
-              ? { word: card.word.trim(), translation: card.translation?.trim() || '' }
-              : { term: card.term.trim(), definition: card.definition.trim() }
-          ),
-        }).then(async response => {
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
-          }
-          return response.json();
-        })
+          fetch(`${API_URL}${isLanguageDeckSelected ? '/lang_cards/' : '/cards/'}${card.id}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': '69420',
+            },
+            body: JSON.stringify(
+                isLanguageDeckSelected
+                    ? { word: card.word.trim(), translation: card.translation?.trim() || '' }
+                    : { term: card.term.trim(), definition: card.definition.trim() }
+            ),
+          }).then(async response => {
+            if (!response.ok) {
+              const errorData = await response.json();
+              throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
+            }
+            return response.json();
+          })
       );
 
       const [newCardsData, updatedCardsData] = await Promise.all([
@@ -489,14 +486,14 @@ const deleteDeck = async (deckId) => {
       setCards([
         ...cards.filter(c => !updatedCards.some(uc => uc.id === c.id)),
         ...newCardsData.map(card => (
-          isLanguageDeckSelected
-            ? { id: card.id, word: card.word, translation: card.translation }
-            : card
+            isLanguageDeckSelected
+                ? { id: card.id, word: card.word, translation: card.translation }
+                : card
         )),
         ...updatedCardsData.map(card => (
-          isLanguageDeckSelected
-            ? { id: card.id, word: card.word, translation: card.translation }
-            : card
+            isLanguageDeckSelected
+                ? { id: card.id, word: card.word, translation: card.translation }
+                : card
         )),
       ]);
 
@@ -562,7 +559,6 @@ const deleteDeck = async (deckId) => {
     return (
         <div className="study-results">
           <h2>Результаты изучения</h2>
-
           <div className="results-stats">
             <div className="stat-card correct-stat">
               <span className="stat-value">{correctCount}</span>
@@ -577,21 +573,17 @@ const deleteDeck = async (deckId) => {
               <span className="stat-label">Всего</span>
             </div>
           </div>
-
           <div className="results-progress">
             <div className="progress-bar">
               <div
                   className="progress-fill"
-                  style={{
-                    width: `${(correctCount / cards.length) * 100}%`
-                  }}
+                  style={{ width: `${(correctCount / cards.length) * 100}%` }}
               ></div>
             </div>
             <span className="progress-percent">
-          {Math.round((correctCount / cards.length) * 100)}% выучено
-        </span>
+            {Math.round((correctCount / cards.length) * 100)}% выучено
+          </span>
           </div>
-
           <button onClick={exitStudy} className="primary-button">
             Вернуться к колодам
           </button>
@@ -642,7 +634,6 @@ const deleteDeck = async (deckId) => {
         <header className="app-header">
           <h1 className="app-title">FlashCards</h1>
         </header>
-
         <div className="main-container">
           <div className="section-container">
             <h2 className="section-title">Создать новую колоду</h2>
@@ -656,7 +647,6 @@ const deleteDeck = async (deckId) => {
                     className="form-input deck-name-input"
                 />
               </div>
-
               <div className="deck-type-selector">
                 <label className="checkbox-label large">
                   <input
@@ -669,7 +659,6 @@ const deleteDeck = async (deckId) => {
                   <span className="checkbox-text">Языковая колода</span>
                 </label>
               </div>
-
               {isLanguageDeck && (
                   <div className="language-selectors">
                     <div className="form-group">
@@ -698,7 +687,6 @@ const deleteDeck = async (deckId) => {
                     </div>
                   </div>
               )}
-
               <button
                   onClick={createDeck}
                   className="primary-button create-button large"
@@ -707,7 +695,6 @@ const deleteDeck = async (deckId) => {
               </button>
             </div>
           </div>
-
           <div className="section-container decks-section">
             <div className="section-header">
               <h2 className="section-title">Мои колоды</h2>
@@ -727,7 +714,6 @@ const deleteDeck = async (deckId) => {
                 )}
               </button>
             </div>
-
             {showDecks && (
                 <div className="decks-container">
                   {decks.length > 0 ? (
@@ -748,7 +734,6 @@ const deleteDeck = async (deckId) => {
                                     </div>
                                 )}
                               </div>
-
                               <div className="deck-actions">
                                 <button
                                     onClick={() => openAddCardsModal(deck.id)}
@@ -784,7 +769,6 @@ const deleteDeck = async (deckId) => {
             )}
           </div>
         </div>
-
         {showCardModal && selectedDeck && (
             <div className="modal">
               <div className="modal-content">
@@ -841,14 +825,12 @@ const deleteDeck = async (deckId) => {
               </div>
             </div>
         )}
-
         <ConfirmModal
             isOpen={confirmModal.isOpen}
             message={confirmModal.message}
             onConfirm={confirmModal.onConfirm}
             onCancel={confirmModal.onCancel}
         />
-
         <div className="toast-container">
           {toasts.map((toast) => (
               <Toast
