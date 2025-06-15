@@ -374,6 +374,9 @@ async def translate(req: TranslateRequest):
         return {"translatedText": translated_text}
     except HTTPException as e:
         raise
+    except httpx.RequestError as e:
+        logger.error(f"Translation request failed: {str(e)}")
+        raise HTTPException(status_code=503, detail=f"Translation service unavailable: {str(e)}")
     except Exception as e:
         logger.error(f"Unexpected error during translation: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error during translation")

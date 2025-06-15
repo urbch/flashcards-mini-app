@@ -12,4 +12,6 @@ EXPOSE 8080
 COPY wait-for-postgres.sh .
 RUN chmod +x wait-for-postgres.sh
 
+ENV PYTHONPATH=/app
+
 CMD ["sh", "wait-for-postgres.sh", "postgres", "5432", "postgres", "1234", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080", "--reload"]
