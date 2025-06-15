@@ -70,11 +70,13 @@ class TranslateRequest(BaseModel):
 def get_db():
     db = SessionLocal()
     try:
+        logger.info("Created new database session")
         yield db
     finally:
+        logger.info("Closing database session")
         db.close()
 
-async def get_or_create_user(telegram_id: int, db: Session) -> User:
+def get_or_create_user(telegram_id: int, db: Session) -> User:
     logger.info(f"Fetching user with telegram_id: {telegram_id}")
     user = db.query(User).filter(User.telegram_id == telegram_id).first()
     if not user:
@@ -83,6 +85,7 @@ async def get_or_create_user(telegram_id: int, db: Session) -> User:
         db.add(user)
         db.commit()
         db.refresh(user)
+        logger.info(f"User created: id={user.id}")
     return user
 
 async def get_telegram_user_info(telegram_id: int) -> dict:
@@ -163,7 +166,8 @@ async def create_deck(deck: DeckCreate, db: Session = Depends(get_db)):
             status_code=400,
             detail="Source and target languages are required for language deck"
         )
-    user = await get_or_create_user(deck.telegram_id, db)
+    user = get_or_create_user(deck.telegram_id, db)
+    logger.info(f"User retrieved or created: id={user.id}")
     db_deck = Deck(
         user_id=user.id,
         name=deck.name,
@@ -172,7 +176,9 @@ async def create_deck(deck: DeckCreate, db: Session = Depends(get_db)):
         target_lang=deck.target_lang if deck.is_language_deck else None
     )
     db.add(db_deck)
+    logger.info("Deck added to session")
     db.commit()
+    logger.info("Deck committed")
     db.refresh(db_deck)
     logger.info(f"Deck created: id={db_deck.id}, name={db_deck.name}")
     return {
@@ -183,6 +189,7 @@ async def create_deck(deck: DeckCreate, db: Session = Depends(get_db)):
         "target_lang": db_deck.target_lang
     }
 
+# Остальной код остаётся без изменений
 @app.get("/decks/{telegram_id}/")
 async def get_decks(telegram_id: int, db: Session = Depends(get_db)):
     logger.info(f"Fetching decks for telegram_id: {telegram_id}")
