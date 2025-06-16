@@ -17,10 +17,10 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "https://flashcardsapp.ru/api"
     ports:
       - "5173:80"
-    args:
-      - VITE_API_URL=https://flashcardsapp.ru/api
     environment:
       - REACT_APP_BACKEND_URL=https://flashcardsapp.ru/api
       - VITE_API_URL=https://flashcardsapp.ru/api
