@@ -1,3 +1,4 @@
+globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 import { expect } from 'vitest';
 import * as matchers from '@testing-library/jest-dom/matchers';
 import { vi } from 'vitest';
@@ -12,3 +13,4 @@ vi.mock('@twa-dev/sdk', () => ({
         initDataUnsafe: { user: { id: 1, first_name: 'Test User' } },
     },
 }));
+

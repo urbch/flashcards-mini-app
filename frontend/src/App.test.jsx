@@ -47,36 +47,32 @@ vi.mock('react-swipeable', () => ({
 describe('App Component (unit tests)', () => {
     beforeEach(() => {
         Object.defineProperty(window, 'location', {
-            value: {search: '?test_mode=true&telegram_id=1'},
+            value: { search: '?test_mode=true&telegram_id=1' },
             writable: true,
         });
 
-        let call = 0;
         global.fetch = vi.fn((url, options) => {
             const method = options?.method || 'GET';
 
-            // User
             if (url.includes('/user/')) {
-                return Promise.resolve({ok: true, json: () => Promise.resolve({id: 1, first_name: 'Test User'})});
+                return Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 1, first_name: 'Test User' }) });
             }
 
-            // Languages
             if (url.includes('/languages')) {
                 return Promise.resolve({
                     ok: true,
                     json: () => Promise.resolve([
-                        {code: 'en', name: 'English'},
-                        {code: 'es', name: 'Spanish'},
+                        { code: 'en', name: 'English' },
+                        { code: 'es', name: 'Spanish' },
                     ]),
                 });
             }
 
-            // Decks
             if (url.includes('/decks/1') && method === 'GET') {
                 return Promise.resolve({
                     ok: true,
                     json: () => Promise.resolve([
-                        {id: 1, name: 'Default Deck', is_language_deck: false},
+                        { id: 1, name: 'Default Deck', is_language_deck: false },
                         {
                             id: 2,
                             name: 'Lang Deck',
@@ -104,37 +100,31 @@ describe('App Component (unit tests)', () => {
             if (url.includes('/cards/1') && method === 'GET') {
                 return Promise.resolve({
                     ok: true,
-                    json: () => Promise.resolve([{id: 1, term: 'Term 1', definition: 'Definition 1'}]),
+                    json: () => Promise.resolve([{ id: 1, term: 'Term 1', definition: 'Definition 1' }]),
                 });
             }
 
             if (url.includes('/lang_cards/2') && method === 'GET') {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve([]),
-                });
+                return Promise.resolve({ ok: true, json: () => Promise.resolve([]) });
             }
 
             if (url.includes('/translate')) {
-                return Promise.resolve({
-                    ok: true,
-                    json: () => Promise.resolve({translatedText: 'hola'}),
-                });
+                return Promise.resolve({ ok: true, json: () => Promise.resolve({ translatedText: 'hola' }) });
             }
 
             if (url.includes('/cards/') && method === 'PUT') {
                 return Promise.resolve({
                     ok: true,
-                    json: () => Promise.resolve({id: 1, term: 'Term 1 updated', definition: 'Def updated'}),
+                    json: () => Promise.resolve({ id: 1, term: 'Term 1 updated', definition: 'Def updated' }),
                 });
             }
 
             if (url.includes('/cards/') && method === 'DELETE') {
-                return Promise.resolve({ok: true, json: () => Promise.resolve({})});
+                return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
             }
 
             if (url.includes('/decks/1') && method === 'DELETE') {
-                return Promise.resolve({ok: true, json: () => Promise.resolve({})});
+                return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
             }
 
             return Promise.reject(new Error(`Unhandled fetch for ${url}`));
@@ -143,13 +133,19 @@ describe('App Component (unit tests)', () => {
 
     afterEach(() => vi.clearAllMocks());
 
+    const renderApp = async () => {
+        await act(async () => {
+            render(<App />);
+        });
+    };
+
     it('renders the deck creation form', async () => {
-        await act(async () => render(<App/>));
+        await renderApp();
         expect(screen.getByText(/Создать новую колоду/i)).toBeInTheDocument();
     });
 
     it('toggles language deck checkbox and shows language selectors', async () => {
-        await act(async () => render(<App/>));
+        await renderApp();
         await userEvent.click(screen.getByLabelText(/Языковая колода/i));
         await waitFor(() => {
             expect(screen.getByText(/Выберите исходный язык/i)).toBeInTheDocument();
@@ -158,9 +154,9 @@ describe('App Component (unit tests)', () => {
     });
 
     it('creates a new deck successfully', async () => {
-        await act(async () => render(<App/>));
+        await renderApp();
         const input = screen.getByPlaceholderText(/Введите название/i);
-        const button = screen.getByRole('button', {name: /Создать колоду/i});
+        const button = screen.getByRole('button', { name: /Создать колоду/i });
         await userEvent.type(input, 'Test Deck');
         await userEvent.click(button);
         await waitFor(() => {
@@ -169,16 +165,16 @@ describe('App Component (unit tests)', () => {
     });
 
     it('shows warning toast when deck name is empty', async () => {
-        await act(async () => render(<App/>));
-        await userEvent.click(screen.getByRole('button', {name: /Создать колоду/i}));
+        await renderApp();
+        await userEvent.click(screen.getByRole('button', { name: /Создать колоду/i }));
         await waitFor(() => {
             expect(screen.getByTestId('toast-warning')).toBeInTheDocument();
         });
     });
 
     it('toggles show decks and displays deck list', async () => {
-        await act(async () => render(<App/>));
-        const toggleButton = screen.getByRole('button', {name: /Показать/i});
+        await renderApp();
+        const toggleButton = screen.getByRole('button', { name: /Показать/i });
         await userEvent.click(toggleButton);
         await waitFor(() => {
             expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
@@ -186,18 +182,14 @@ describe('App Component (unit tests)', () => {
     });
 
     it('opens card modal when clicking edit button on a deck', async () => {
-        await act(async () => render(<App/>));
-        const toggleButton = screen.getByRole('button', {name: /Показать/i});
-        await act(async () => {
-            await userEvent.click(toggleButton);
-        });
+        await renderApp();
+        const toggleButton = screen.getByRole('button', { name: /Показать/i });
+        await userEvent.click(toggleButton);
         await waitFor(() => {
             expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
         });
-        const editButton = screen.getAllByRole('button', {name: /Редактировать карточки/i});
-        await act(async () => {
-            await userEvent.click(editButton[0]);
-        });
+        const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
+        await userEvent.click(editButtons[0]);
         await waitFor(() => {
             expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
             expect(screen.getByPlaceholderText(/Термин/i)).toBeInTheDocument();
@@ -205,20 +197,16 @@ describe('App Component (unit tests)', () => {
     });
 
     it('removes a card row when clicking ×', async () => {
-        await act(async () => render(<App />));
+        await renderApp();
         await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
-        await waitFor(() => {
-            expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
-        });
+        await waitFor(() => screen.getByText(/Default Deck/i));
         const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
         await userEvent.click(editButtons[0]);
         await waitFor(() => {
             expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
         });
-
         await userEvent.click(screen.getByText('+'));
-        let rows = screen.getAllByPlaceholderText('Термин');
-        expect(rows.length).toBeGreaterThan(0);
+        const rows = screen.getAllByPlaceholderText('Термин');
         const removeButtons = screen.getAllByText('×');
         await userEvent.click(removeButtons[0]);
         await waitFor(() => {
@@ -226,19 +214,15 @@ describe('App Component (unit tests)', () => {
         });
     });
 
-
-
     it('saves edited cards', async () => {
-        await act(async () => render(<App/>));
-        await userEvent.click(screen.getByRole('button', {name: /Показать/i}));
+        await renderApp();
+        await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
         await waitFor(() => screen.getByText(/Default Deck/i));
         const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
         await userEvent.click(editButtons[0]);
-
         const termInput = screen.getByPlaceholderText('Термин');
         await userEvent.clear(termInput);
         await userEvent.type(termInput, 'Updated term');
-
         await userEvent.click(screen.getByText(/Сохранить/i));
         await waitFor(() => {
             expect(screen.getByTestId('toast-success')).toBeInTheDocument();
@@ -246,14 +230,13 @@ describe('App Component (unit tests)', () => {
     });
 
     it('auto-translates a word on blur for language deck', async () => {
-        await act(async () => render(<App />));
+        await renderApp();
         await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
         await waitFor(() => {
             expect(screen.getByText('Lang Deck')).toBeInTheDocument();
         });
-        await userEvent.click(
-            screen.getAllByRole('button', { name: /Редактировать карточки/i })[1]
-        );
+        const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
+        await userEvent.click(editButtons[1]);
         await waitFor(() => {
             expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
         });
@@ -267,15 +250,14 @@ describe('App Component (unit tests)', () => {
         });
     });
 
-
     it('deletes a deck with confirmation', async () => {
-        await act(async () => render(<App/>));
-        await userEvent.click(screen.getByRole('button', {name: /Показать/i}));
+        await renderApp();
+        await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
         await waitFor(() => {
             expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
         });
-        const deleteButton = screen.getAllByRole('button', {name: /Удалить колоду/i})
-        await userEvent.click(deleteButton[0]);
+        const deleteButtons = screen.getAllByRole('button', { name: /Удалить колоду/i });
+        await userEvent.click(deleteButtons[0]);
         await waitFor(() => {
             expect(screen.getByTestId('confirm-modal')).toBeInTheDocument();
         });
@@ -286,22 +268,16 @@ describe('App Component (unit tests)', () => {
     });
 
     it('starts study mode when clicking study button', async () => {
-        await act(async () => render(<App/>));
-        const toggleButton = screen.getByRole('button', {name: /Показать/i});
-        await act(async () => {
-            await userEvent.click(toggleButton);
-        });
+        await renderApp();
+        await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
         await waitFor(() => {
             expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
         });
-        const studyButton = screen.getAllByRole('button', {name: /Учить карточки/i});
-        await act(async () => {
-            await userEvent.click(studyButton[0]);
-        });
+        const studyButtons = screen.getAllByRole('button', { name: /Учить карточки/i });
+        await userEvent.click(studyButtons[0]);
         await waitFor(() => {
             expect(screen.getByText(/Изучение карточек/i)).toBeInTheDocument();
             expect(screen.getByText(/Term 1/i)).toBeInTheDocument();
         });
     });
 });
-

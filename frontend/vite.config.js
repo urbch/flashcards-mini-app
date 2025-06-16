@@ -5,10 +5,15 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   server: {
-    hmr: false,
+    host: true,
+    port: 5173,
+    watch: {
+      usePolling: true
+    },
+    hmr: false
   },
   allowedHosts: [
-    'dc4b-194-58-154-209.ngrok-free.app', //бэкенд
+    'a93f-194-58-154-209.ngrok-free.app', //бэкенд
     'ee0e-194-58-154-209.ngrok-free.app', //фронт
     'localhost', // Для локальной разработки
   ],
@@ -21,6 +26,7 @@ export default defineConfig({
     environmentOptions: {
       jsdom: {
         pretendToBeVisual: true,
+        resources: "usable"
       },
     },
     server: {
@@ -35,4 +41,5 @@ export default defineConfig({
     },
   },
 });
+
 
