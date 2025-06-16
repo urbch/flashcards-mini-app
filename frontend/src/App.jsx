@@ -202,7 +202,7 @@ function App() {
       setDecks(data);
     } catch (error) {
       console.error('Error fetching decks:', error);
-      showToast(`Ошибка загрузки колод: ${error.message}`, 'error');
+      {/*showToast(`Ошибка загрузки колод: ${error.message}`, 'error'); */}
     }
   };
 
