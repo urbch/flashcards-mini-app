@@ -18,7 +18,7 @@ services:
     ports:
       - "5173:80"
     environment:
-      - REACT_APP_BACKEND_URL=http://5.159.101.115/api
+      - REACT_APP_BACKEND_URL=https://flashcardsapp.ru/api
     depends_on:
       - api
     networks:
@@ -40,7 +40,7 @@ services:
     volumes:
       - ./api:/app
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://5.159.101.115/api" ]
+      test: [ "CMD", "curl", "-f", "https://flashcardsapp.ru/api" ]
       interval: 30s
       timeout: 10s
       retries: 3
