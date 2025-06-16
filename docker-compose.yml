@@ -1,0 +1,113 @@
+services:
+  nginx: 
+    image: nginx:stable-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - './nginx.conf:/etc/nginx/nginx.conf'
+      - '/etc/nginx/ssl:/etc/nginx/ssl'
+    depends_on:
+      - frontend
+      - api
+    networks:
+      - app-network
+  
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_URL: "https://flashcardsapp.ru/api"
+    ports:
+      - "5173:80"
+    environment:
+      - REACT_APP_BACKEND_URL=https://flashcardsapp.ru/api
+      - VITE_API_URL=https://flashcardsapp.ru/api
+    depends_on:
+      - api
+    networks:
+      - app-network
+
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - translate
+    networks:
+      - app-network
+    volumes:
+      - ./api:/app
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "https://flashcardsapp.ru/api" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  bot:
+    build:
+      context: ./bot
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    depends_on:
+      - api
+    networks:
+      - app-network
+    volumes:
+      - ./bot:/app
+    command: python main.py
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=Bread785
+      - POSTGRES_DB=flashcards
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - app-network
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d flashcards" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  translate:
+    image: libretranslate/libretranslate:v1.6.0
+    restart: unless-stopped
+    ports:
+      - "5001:5000"
+    env_file:
+      - stack.env
+    volumes:
+      - libretranslate_api_keys:/app/db
+      - libretranslate_models:/home/libretranslate/.local:rw
+    tty: true
+    stdin_open: true
+    healthcheck:
+      test: ['CMD-SHELL', './venv/bin/python scripts/healthcheck.py']
+    environment:
+      - LT_LOAD_ONLY=ru,en
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+  libretranslate_models:
+  libretranslate_api_keys:
+
+networks:
+  app-network:
+    driver: bridge
