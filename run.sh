@@ -74,7 +74,7 @@ full() {
     build_images
     execute_all_tests
     start_services
-    log_message "Приложение запущено! Используйте './run.sh stop' для остановки."
+    log_message "Приложение запущено на http://localhost:5173/?test_mode=true! Используйте './run.sh stop' для остановки."
 }
 
 # Функция: отображение справки
