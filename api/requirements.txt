@@ -8,3 +8,4 @@ httpx
 requests
 pytest==7.4.2
 pytest-asyncio==0.23.8
+pytest-cov

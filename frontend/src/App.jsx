@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import TelegramWebApp from '@twa-dev/sdk';
 import { useSwipeable } from 'react-swipeable';
-import ConfirmModal from './ConfirmModal';
-import Toast from './Toast';
+import ConfirmModal from './components/ConfirmModal.jsx';
+import Toast from './components/Toast.jsx';
 import './App.css';
 
 function App() {

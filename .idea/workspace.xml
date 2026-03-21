@@ -1,4 +1,167 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PropertiesComponent">{}</component>
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="72f9f358-d613-4ced-aca2-245ef5a4e2eb" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/api/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.test.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.test.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/ConfirmModal.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/ConfirmModal.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/ConfirmModal.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/ConfirmModal.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/Toast.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Toast.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/Toast.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/Toast.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 4
+}</component>
+  <component name="ProjectId" id="33nApA66o1tj05bVEBYbVeKIdy3" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python tests.Python tests for test_bot.TestBotIntegration.executor": "Run",
+    "Python tests.Python tests for test_bot.TestNotificationScheduler.test_check_time_and_notify_with_error.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Vitest.All Tests.executor": "Run",
+    "Vitest.App Component (unit tests).starts study mode when clicking study button.executor": "Run",
+    "git-widget-placeholder": "main",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "ts.external.directory.path": "/Applications/WebStorm.app/Contents/plugins/javascript-plugin/jsLanguageServicesImpl/external",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/bot/test" />
+      <recent name="$PROJECT_DIR$/frontend/src/components" />
+    </key>
+  </component>
+  <component name="RunManager" selected="Python tests.Python tests for test_bot.TestNotificationScheduler.test_check_time_and_notify_with_users">
+    <configuration name="All Tests" type="JavaScriptTestRunnerVitest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <vitest-package value="$PROJECT_DIR$/frontend/node_modules/vitest" />
+      <working-dir value="$PROJECT_DIR$/frontend" />
+      <envs />
+      <scope-kind value="ALL" />
+      <method v="2" />
+    </configuration>
+    <configuration name="App Component (unit tests).starts study mode when clicking study button" type="JavaScriptTestRunnerVitest" temporary="true" nameIsGenerated="true">
+      <node-interpreter value="project" />
+      <vitest-package value="$PROJECT_DIR$/frontend/node_modules/vitest" />
+      <working-dir value="$PROJECT_DIR$/frontend" />
+      <vitest-options value="--run" />
+      <envs />
+      <scope-kind value="TEST" />
+      <test-file value="$PROJECT_DIR$/frontend/src/App.test.jsx" />
+      <test-names>
+        <test-name value="App Component (unit tests)" />
+        <test-name value="starts study mode when clicking study button" />
+      </test-names>
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_bot.TestBotIntegration" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="telegramappflashcards_v2" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/bot/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_bot.TestBotIntegration&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_bot.TestNotificationScheduler.test_check_time_and_notify_with_error" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="telegramappflashcards_v2" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/bot/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_bot.TestNotificationScheduler.test_check_time_and_notify_with_error&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <configuration name="Python tests for test_bot.TestNotificationScheduler.test_check_time_and_notify_with_users" type="tests" factoryName="Autodetect" temporary="true" nameIsGenerated="true">
+      <module name="telegramappflashcards_v2" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/bot/test" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;test_bot.TestNotificationScheduler.test_check_time_and_notify_with_users&quot;" />
+      <option name="_new_targetType" value="&quot;PYTHON&quot;" />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Python tests.Python tests for test_bot.TestNotificationScheduler.test_check_time_and_notify_with_users" />
+        <item itemvalue="Python tests.Python tests for test_bot.TestBotIntegration" />
+        <item itemvalue="Python tests.Python tests for test_bot.TestNotificationScheduler.test_check_time_and_notify_with_error" />
+        <item itemvalue="Vitest.App Component (unit tests).starts study mode when clicking study button" />
+        <item itemvalue="Vitest.All Tests" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-js-predefined-d6986cc7102b-e768b9ed790e-JavaScript-WS-243.21565.180" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="72f9f358-d613-4ced-aca2-245ef5a4e2eb" name="Changes" comment="" />
+      <created>1759942644783</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1759942644783</updated>
+      <workItem from="1759942646167" duration="29077000" />
+      <workItem from="1773834848380" duration="37555000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
 </project>

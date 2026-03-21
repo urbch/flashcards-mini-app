@@ -1,6 +1,6 @@
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { vi } from 'vitest';
-import App from '@/App';
+import App from './App';
 import userEvent from '@testing-library/user-event';
 
 // --- MOCKS ---
@@ -12,7 +12,7 @@ vi.mock('@twa-dev/sdk', () => ({
     },
 }));
 
-vi.mock('@/ConfirmModal', () => ({
+vi.mock('./components/ConfirmModal', () => ({
     default: ({ isOpen, message, onConfirm, onCancel }) =>
         isOpen ? (
             <div data-testid="confirm-modal">
@@ -23,7 +23,7 @@ vi.mock('@/ConfirmModal', () => ({
         ) : null,
 }));
 
-vi.mock('@/Toast', () => ({
+vi.mock('./components/Toast', () => ({
     default: ({ id, message, type, duration, onClose }) => {
         setTimeout(() => onClose(id), duration);
         return (
@@ -100,7 +100,10 @@ describe('App Component (unit tests)', () => {
             if (url.includes('/cards/1') && method === 'GET') {
                 return Promise.resolve({
                     ok: true,
-                    json: () => Promise.resolve([{ id: 1, term: 'Term 1', definition: 'Definition 1' }]),
+                    json: () => Promise.resolve([
+                        { id: 1, term: 'Term 1', definition: 'Definition 1' },
+                        { id: 2, term: 'Term 2', definition: 'Definition 2' }
+                    ]),
                 });
             }
 
@@ -119,6 +122,17 @@ describe('App Component (unit tests)', () => {
                 });
             }
 
+            if (url.includes('/cards/') && method === 'POST') {
+                return Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve({
+                        id: 4,
+                        term: 'New Term',
+                        definition: 'New Definition'
+                    }),
+                });
+            }
+
             if (url.includes('/cards/') && method === 'DELETE') {
                 return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
             }
@@ -131,7 +145,10 @@ describe('App Component (unit tests)', () => {
         });
     });
 
-    afterEach(() => vi.clearAllMocks());
+    afterEach(() => {
+        vi.clearAllMocks();
+        vi.useRealTimers();
+    });
 
     const renderApp = async () => {
         await act(async () => {
@@ -192,7 +209,7 @@ describe('App Component (unit tests)', () => {
         await userEvent.click(editButtons[0]);
         await waitFor(() => {
             expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
-            expect(screen.getByPlaceholderText(/Термин/i)).toBeInTheDocument();
+            expect(screen.getAllByPlaceholderText(/Термин/i).length).toBeGreaterThan(0);
         });
     });
 
@@ -220,9 +237,11 @@ describe('App Component (unit tests)', () => {
         await waitFor(() => screen.getByText(/Default Deck/i));
         const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
         await userEvent.click(editButtons[0]);
-        const termInput = screen.getByPlaceholderText('Термин');
-        await userEvent.clear(termInput);
-        await userEvent.type(termInput, 'Updated term');
+        const termInputs = screen.getAllByPlaceholderText('Термин');
+        const firstTermInput = termInputs[0];
+
+        await userEvent.clear(firstTermInput);
+        await userEvent.type(firstTermInput, 'Updated term');
         await userEvent.click(screen.getByText(/Сохранить/i));
         await waitFor(() => {
             expect(screen.getByTestId('toast-success')).toBeInTheDocument();
@@ -278,6 +297,262 @@ describe('App Component (unit tests)', () => {
         await waitFor(() => {
             expect(screen.getByText(/Изучение карточек/i)).toBeInTheDocument();
             expect(screen.getByText(/Term 1/i)).toBeInTheDocument();
+        });
+    });
+
+    describe('Card editing validations', () => {
+        it('shows warning toast when trying to save cards with empty fields', async () => {
+            await renderApp();
+
+            await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
+            await waitFor(() => {
+                expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
+            });
+
+            const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
+            await userEvent.click(editButtons[0]);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByText('+'));
+            await userEvent.click(screen.getByText(/Сохранить/i));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('toast-warning')).toBeInTheDocument();
+            });
+        });
+
+        it('closes modal when clicking close button', async () => {
+            await renderApp();
+
+            await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
+            await waitFor(() => {
+                expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
+            });
+
+            const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
+            await userEvent.click(editButtons[0]);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByText(/Закрыть/i));
+
+            await waitFor(() => {
+                expect(screen.queryByText(/Редактировать карточки/i)).not.toBeInTheDocument();
+            });
+        });
+    });
+
+    describe('Study mode interactions', () => {
+        const setupStudyMode = async () => {
+            await renderApp();
+
+            await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
+            await waitFor(() => {
+                expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
+            });
+
+            const studyButtons = screen.getAllByRole('button', { name: /Учить карточки/i });
+            await userEvent.click(studyButtons[0]);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Изучение карточек/i)).toBeInTheDocument();
+            });
+        };
+
+        it('displays study mode UI correctly', async () => {
+            await setupStudyMode();
+
+            expect(screen.getByText(/Изучение карточек/i)).toBeInTheDocument();
+            expect(screen.getByText(/1 из 2/)).toBeInTheDocument();
+            expect(screen.getByText(/Term 1/i)).toBeInTheDocument();
+            expect(screen.getByText(/Свайп влево — не запомнил, вправо — запомнил/i)).toBeInTheDocument();
+            expect(screen.getByRole('button', { name: /Завершить/i })).toBeInTheDocument();
+        });
+
+        it('flips card to show definition on click', async () => {
+            await setupStudyMode();
+
+            const card = screen.getByText(/Term 1/i).closest('.study-card');
+            await userEvent.click(card);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Definition 1/i)).toBeInTheDocument();
+            });
+
+            expect(card).toHaveClass('flipped');
+        });
+
+        it('flips card back to term on second click', async () => {
+            await setupStudyMode();
+
+            const card = screen.getByText(/Term 1/i).closest('.study-card');
+
+            await userEvent.click(card);
+            await waitFor(() => {
+                expect(screen.getByText(/Definition 1/i)).toBeInTheDocument();
+            });
+
+            await userEvent.click(card);
+            await waitFor(() => {
+                expect(screen.getByText(/Term 1/i)).toBeInTheDocument();
+            });
+        });
+
+        it('exits study mode when clicking "Завершить" button', async () => {
+            await setupStudyMode();
+
+            await userEvent.click(screen.getByRole('button', { name: /Завершить/i }));
+
+            await waitFor(() => {
+                expect(screen.getByText(/Создать новую колоду/i)).toBeInTheDocument();
+                expect(screen.queryByText(/Изучение карточек/i)).not.toBeInTheDocument();
+            });
+        });
+
+        it('shows message when deck has no cards', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = vi.fn((url) => {
+                if (url.includes('/cards/1')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve([]),
+                    });
+                }
+                if (url.includes('/user/')) {
+                    return Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 1, first_name: 'Test User' }) });
+                }
+                if (url.includes('/decks/1')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve([
+                            { id: 1, name: 'Empty Deck', is_language_deck: false }
+                        ]),
+                    });
+                }
+                return Promise.reject(new Error(`Unhandled fetch for ${url}`));
+            });
+
+            await renderApp();
+
+            await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
+            await waitFor(() => {
+                expect(screen.getByText(/Empty Deck/i)).toBeInTheDocument();
+            });
+
+            const studyButtons = screen.getAllByRole('button', { name: /Учить карточки/i });
+            await userEvent.click(studyButtons[0]);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Добавьте карточки, чтобы начать изучение/i)).toBeInTheDocument();
+            });
+
+            global.fetch = originalFetch;
+        });
+    });
+
+    describe('Study mode edge cases', () => {
+        it('shows message when no cards in deck', async () => {
+            const originalFetch = global.fetch;
+            global.fetch = vi.fn((url, options) => {
+                if (url.includes('/cards/1')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve([]),
+                    });
+                }
+                // Для остальных запросов используем оригинальный мок из beforeEach
+                if (url.includes('/user/')) {
+                    return Promise.resolve({ ok: true, json: () => Promise.resolve({ id: 1, first_name: 'Test User' }) });
+                }
+                if (url.includes('/decks/1')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve([
+                            { id: 1, name: 'Default Deck', is_language_deck: false }
+                        ]),
+                    });
+                }
+                return Promise.reject(new Error(`Unhandled fetch for ${url}`));
+            });
+
+            await renderApp();
+
+            await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
+            await waitFor(() => {
+                expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
+            });
+
+            const studyButtons = screen.getAllByRole('button', { name: /Учить карточки/i });
+            await userEvent.click(studyButtons[0]);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Добавьте карточки, чтобы начать изучение/i)).toBeInTheDocument();
+            });
+
+            global.fetch = originalFetch;
+        });
+    });
+
+    describe('saveCards function scenarios', () => {
+        it('creates new cards successfully', async () => {
+            await renderApp();
+
+            await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
+            await waitFor(() => {
+                expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
+            });
+
+            const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
+            await userEvent.click(editButtons[0]);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
+            });
+
+            await userEvent.click(screen.getByText('+'));
+
+            const termInputs = screen.getAllByPlaceholderText('Термин');
+            const defInputs = screen.getAllByPlaceholderText('Определение');
+
+            await userEvent.type(termInputs[termInputs.length - 1], 'New Term');
+            await userEvent.type(defInputs[defInputs.length - 1], 'New Definition');
+
+            await userEvent.click(screen.getByText(/Сохранить/i));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('toast-success')).toBeInTheDocument();
+            });
+        });
+
+        it('updates existing cards successfully', async () => {
+            await renderApp();
+
+            await userEvent.click(screen.getByRole('button', { name: /Показать/i }));
+            await waitFor(() => {
+                expect(screen.getByText(/Default Deck/i)).toBeInTheDocument();
+            });
+
+            const editButtons = screen.getAllByRole('button', { name: /Редактировать карточки/i });
+            await userEvent.click(editButtons[0]);
+
+            await waitFor(() => {
+                expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
+            });
+
+            const termInput = screen.getByDisplayValue('Term 1');
+            await userEvent.clear(termInput);
+            await userEvent.type(termInput, 'Updated Term');
+
+            await userEvent.click(screen.getByText(/Сохранить/i));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('toast-success')).toBeInTheDocument();
+            });
         });
     });
 });
