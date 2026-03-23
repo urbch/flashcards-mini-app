@@ -1,3 +1,6 @@
 aiogram
 python-dotenv
 pytz
+pytest
+pytest-cov
+pytest-asyncio

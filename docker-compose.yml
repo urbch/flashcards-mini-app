@@ -12,6 +12,7 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
+      - ./reports/frontend:/app/reports
 
   api:
     build:
@@ -28,6 +29,7 @@ services:
       - app-network
     volumes:
       - ./api:/app
+      - ./reports/api:/app/reports
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
       interval: 30s
@@ -47,6 +49,7 @@ services:
       - app-network
     volumes:
       - ./bot:/app
+      - ./reports/bot:/app/reports
     command: python main.py
     restart: unless-stopped
 

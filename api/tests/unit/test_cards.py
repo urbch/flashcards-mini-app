@@ -1,89 +1,217 @@
-import pytest
-from fastapi.testclient import TestClient
-from main import app, get_db
-from database import SessionLocal
-from unittest.mock import Mock
-from models import Deck, Card
+from models import Card, Deck
 
-@pytest.fixture
-def mock_db():
-    db = Mock()
-    return db
 
-@pytest.fixture
-def client(mock_db):
-    app.dependency_overrides[get_db] = lambda: mock_db
-    return TestClient(app)
+# =========================
+# Helpers
+# =========================
 
-def test_create_card_valid(client, mock_db):
-    # Мокаем вызовы к базе
-    mock_deck = Deck(id=1, user_id=1)
+def make_deck(deck_id=1, user_id=1):
+    return Deck(id=deck_id, user_id=user_id)
+
+
+def make_card(card_id=1, deck_id=1, term="Capital", definition="Definition"):
+    return Card(
+        id=card_id,
+        deck_id=deck_id,
+        term=term,
+        definition=definition,
+    )
+
+
+# =========================
+# POST /cards/
+# =========================
+
+def test_create_card_returns_200_for_valid_payload(client, mock_db, db_refresh_sets_id):
+    """Карточка должна успешно создаваться для существующей колоды."""
+    # Arrange
+    mock_deck = make_deck(deck_id=1, user_id=1)
     mock_db.query.return_value.filter.return_value.first.return_value = mock_deck
     mock_db.add.return_value = None
     mock_db.commit.return_value = None
-    mock_db.refresh.side_effect = lambda x: setattr(x, "id", 1)
+    mock_db.refresh.side_effect = db_refresh_sets_id
 
-    # Отправляем запрос
-    response = client.post(
-        "/cards/",
-        json={
-            "deck_id": 1,
-            "term": "Capital",
-            "definition": "A city that serves as the seat of government",
-        },
-    )
-    # Проверяем ответ
+    payload = {
+        "deck_id": 1,
+        "term": "Capital",
+        "definition": "A city that serves as the seat of government",
+    }
+
+    # Act
+    response = client.post("/cards/", json=payload)
+
+    # Assert
     assert response.status_code == 200
-    assert response.json()["deck_id"] == 1
-    assert response.json()["term"] == "Capital"
-    assert response.json()["definition"] == "A city that serves as the seat of government"
+    body = response.json()
 
-def test_create_card_invalid_deck(client, mock_db):
-    # Мокаем отсутствие колоды
+    assert body["id"] == 1
+    assert body["deck_id"] == 1
+    assert body["term"] == "Capital"
+    assert body["definition"] == "A city that serves as the seat of government"
+
+    mock_db.add.assert_called_once()
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once()
+
+
+def test_create_card_returns_404_when_deck_not_found(client, mock_db):
+    """Если колода не найдена, создание карточки должно завершаться 404."""
+    # Arrange
     mock_db.query.return_value.filter.return_value.first.return_value = None
 
-    # Отправляем запрос
-    response = client.post(
-        "/cards/",
-        json={
-            "deck_id": 999,
-            "term": "Capital",
-            "definition": "A city that serves as the seat of government",
-        },
-    )
-    # Проверяем ошибку
+    payload = {
+        "deck_id": 999,
+        "term": "Capital",
+        "definition": "A city that serves as the seat of government",
+    }
+
+    # Act
+    response = client.post("/cards/", json=payload)
+
+    # Assert
     assert response.status_code == 404
     assert response.json()["detail"] == "Deck not found"
 
-def test_update_card_valid(client, mock_db):
-    # Мокаем существующую карточку
-    mock_card = Card(id=1, deck_id=1, term="Old", definition="Old Def")
+    mock_db.add.assert_not_called()
+    mock_db.commit.assert_not_called()
+    mock_db.refresh.assert_not_called()
+
+
+# =========================
+# GET /cards/{deck_id}
+# =========================
+
+def test_get_cards_returns_200_and_cards_for_existing_deck(client, mock_db):
+    """Для существующей колоды должен возвращаться список карточек."""
+    # Arrange
+    mock_deck = make_deck(deck_id=1)
+    mock_card = make_card(card_id=1, deck_id=1, term="A", definition="B")
+
+    mock_db.query.return_value.filter.return_value.first.return_value = mock_deck
+    mock_db.query.return_value.filter.return_value.all.return_value = [mock_card]
+
+    # Act
+    response = client.get("/cards/1")
+
+    # Assert
+    assert response.status_code == 200
+    body = response.json()
+
+    assert len(body) == 1
+    assert body[0]["id"] == 1
+    assert body[0]["deck_id"] == 1
+    assert body[0]["term"] == "A"
+    assert body[0]["definition"] == "B"
+
+
+def test_get_cards_returns_empty_list_for_existing_deck_without_cards(client, mock_db):
+    """Если колода существует, но карточек нет, должен возвращаться пустой список."""
+    # Arrange
+    mock_deck = make_deck(deck_id=1)
+
+    mock_db.query.return_value.filter.return_value.first.return_value = mock_deck
+    mock_db.query.return_value.filter.return_value.all.return_value = []
+
+    # Act
+    response = client.get("/cards/1")
+
+    # Assert
+    assert response.status_code == 200
+    assert response.json() == []
+
+
+def test_get_cards_returns_404_when_deck_not_found(client, mock_db):
+    """Если колода не найдена, получение карточек должно завершаться 404."""
+    # Arrange
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    # Act
+    response = client.get("/cards/1")
+
+    # Assert
+    assert response.status_code == 404
+
+
+# =========================
+# PUT /cards/{card_id}
+# =========================
+
+def test_update_card_returns_200_for_existing_card(client, mock_db):
+    """Существующая карточка должна успешно обновляться."""
+    # Arrange
+    mock_card = make_card(card_id=1, deck_id=1, term="Old", definition="Old Def")
     mock_db.query.return_value.filter.return_value.first.return_value = mock_card
     mock_db.commit.return_value = None
-    mock_db.refresh.side_effect = lambda x: None
+    mock_db.refresh.side_effect = lambda obj: None
 
-    # Отправляем запрос
-    response = client.put(
-        "/cards/1",
-        json={
-            "term": "New Capital",
-            "definition": "Updated definition",
-        },
-    )
-    # Проверяем ответ
+    payload = {
+        "term": "New Capital",
+        "definition": "Updated definition",
+    }
+
+    # Act
+    response = client.put("/cards/1", json=payload)
+
+    # Assert
     assert response.status_code == 200
-    assert response.json()["term"] == "New Capital"
-    assert response.json()["definition"] == "Updated definition"
+    body = response.json()
 
-def test_delete_card_valid(client, mock_db):
-    # Мокаем существующую карточку
-    mock_card = Card(id=1, deck_id=1, term="Capital", definition="Def")
+    assert body["id"] == 1
+    assert body["deck_id"] == 1
+    assert body["term"] == "New Capital"
+    assert body["definition"] == "Updated definition"
+
+    mock_db.commit.assert_called_once()
+    mock_db.refresh.assert_called_once()
+
+
+def test_update_card_returns_404_when_card_not_found(client, mock_db):
+    """Если карточка не найдена, обновление должно завершаться 404."""
+    # Arrange
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    payload = {
+        "term": "x",
+        "definition": "y",
+    }
+
+    # Act
+    response = client.put("/cards/1", json=payload)
+
+    # Assert
+    assert response.status_code == 404
+
+
+# =========================
+# DELETE /cards/{card_id}
+# =========================
+
+def test_delete_card_returns_200_for_existing_card(client, mock_db):
+    """Существующая карточка должна успешно удаляться."""
+    # Arrange
+    mock_card = make_card(card_id=1, deck_id=1, term="Capital", definition="Def")
     mock_db.query.return_value.filter.return_value.first.return_value = mock_card
     mock_db.delete.return_value = None
     mock_db.commit.return_value = None
 
-    # Отправляем запрос
+    # Act
     response = client.delete("/cards/1")
-    # Проверяем ответ
+
+    # Assert
     assert response.status_code == 200
     assert response.json()["message"] == "Card deleted successfully"
+
+    mock_db.delete.assert_called_once_with(mock_card)
+    mock_db.commit.assert_called_once()
+
+
+def test_delete_card_returns_not_found_status_for_missing_card(client, mock_db):
+    """При удалении несуществующей карточки должен возвращаться статус not found."""
+    # Arrange
+    mock_db.query.return_value.filter.return_value.first.return_value = None
+
+    # Act
+    response = client.delete("/cards/999")
+
+    # Assert
+    assert response.status_code in (404, 400)

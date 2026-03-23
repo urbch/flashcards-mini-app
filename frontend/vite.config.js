@@ -34,6 +34,11 @@ export default defineConfig({
         inline: ['@twa-dev/sdk'],
       },
     },
+    coverage: {
+      provider: 'v8',
+      reportsDirectory: './reports/coverage',
+      reporter: ['text', 'html', 'json']
+    }
   },
   resolve: {
     alias: {
