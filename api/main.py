@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from typing import Optional
 import httpx
 import logging
@@ -41,14 +41,50 @@ class DeckCreate(BaseModel):
     source_lang: Optional[str] = None
     target_lang: Optional[str] = None
 
+    @validator('name')
+    def validate_name_length(cls, v):
+        if len(v) > 64:
+            raise ValueError('Название колоды не может превышать 64 символов')
+        if len(v) < 1:
+            raise ValueError('Название колоды не может быть пустым')
+        return v
+
 class CardCreate(BaseModel):
     deck_id: int
     term: str
     definition: str
+    @validator('term')
+    def validate_term_length(cls, v):
+        if len(v) > 64:
+            raise ValueError('Термин не может превышать 64 символов')
+        if len(v) < 1:
+            raise ValueError('Термин не может быть пустым')
+        return v
+    @validator('definition')
+    def validate_definition_length(cls, v):
+        if len(v) > 512:
+            raise ValueError('Определение не может превышать 512 символов')
+        if len(v) < 1:
+            raise ValueError('Определение не может быть пустым')
+        return v
 
 class CardUpdate(BaseModel):
     term: str
     definition: str
+    @validator('term')
+    def validate_term_length(cls, v):
+        if len(v) > 64:
+            raise ValueError('Термин не может превышать 64 символов')
+        if len(v) < 1:
+            raise ValueError('Термин не может быть пустым')
+        return v
+    @validator('definition')
+    def validate_definition_length(cls, v):
+        if len(v) > 512:
+            raise ValueError('Определение не может превышать 512 символов')
+        if len(v) < 1:
+            raise ValueError('Определение не может быть пустым')
+        return v
 
 class LangCardCreate(BaseModel):
     deck_id: int
@@ -56,10 +92,39 @@ class LangCardCreate(BaseModel):
     source_lang: str
     target_lang: str
     translation: Optional[str] = None
+    @validator('word')
+    def validate_word_length(cls, v):
+        if len(v) > 128:
+            raise ValueError('Слово не может превышать 128 символов')
+        if len(v) < 1:
+            raise ValueError('Слово не может быть пустым')
+        return v
+    @validator('translation')
+    def validate_translation_length(cls, v):
+        if len(v) > 128:
+            raise ValueError('Перевод не может превышать 128 символов')
+        if len(v) < 1:
+            raise ValueError('Перевод не может быть пустым')
+        return v
+
 
 class LangCardUpdate(BaseModel):
     word: str
     translation: str
+    @validator('word')
+    def validate_word_length(cls, v):
+        if len(v) > 128:
+            raise ValueError('Слово не может превышать 128 символов')
+        if len(v) < 1:
+            raise ValueError('Слово не может быть пустым')
+        return v
+    @validator('translation')
+    def validate_translation_length(cls, v):
+        if len(v) > 128:
+            raise ValueError('Перевод не может превышать 128 символов')
+        if len(v) < 1:
+            raise ValueError('Перевод не может быть пустым')
+        return v
 
 class TranslateRequest(BaseModel):
     q: str

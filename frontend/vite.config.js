@@ -14,7 +14,7 @@ export default defineConfig({
   },
   allowedHosts: [
     'a93f-194-58-154-209.ngrok-free.app', //бэкенд
-    'ee0e-194-58-154-209.ngrok-free.app', //фронт
+    'd46d-194-58-154-209.ngrok-free.app', //фронт
     'localhost', // Для локальной разработки
   ],
   test: {

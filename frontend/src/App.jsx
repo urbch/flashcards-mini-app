@@ -110,7 +110,8 @@ function App() {
       return data.translatedText;
     } catch (error) {
       console.error('Error fetching translation:', { word, sourceLang, targetLang, error: error.message });
-      return `Ошибка перевода: ${error.message}`;
+      showToast('Ошибка перевода', 'error'); // Добавлено: короткое уведомление
+      return '';
     } finally {
       setTranslatingRows(prev => ({ ...prev, [rowIndex]: false }));
     }
@@ -215,6 +216,10 @@ function App() {
       showToast('Выберите исходный и целевой языки для языковой колоды', 'warning');
       return;
     }
+    if (isLanguageDeck && (sourceLang === targetLang)) {
+      showToast('исходный и целевой языки должны быть разными', 'warning');
+      return;
+    }
     const payload = {
       telegram_id: user.id,
       name: deckName.trim(),
@@ -233,7 +238,16 @@ function App() {
       });
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
+        if (errorData.detail && Array.isArray(errorData.detail)) {
+          const errorMessage = errorData.detail[0]?.msg || 'Ошибка валидации';
+          // Извлекаем понятное сообщение
+          const userMessage = errorMessage.replace('Value error, ', '');
+          throw new Error(userMessage);
+        } else if (errorData.detail) {
+          throw new Error(errorData.detail);
+        } else {
+          throw new Error('Произошла ошибка при создании колоды');
+        }
       }
       const newDeck = await response.json();
       showToast(`Колода "${newDeck.name}" успешно создана!`, 'success');
@@ -302,30 +316,77 @@ function App() {
   const openAddCardsModal = async (deckId) => {
     setSelectedDeck(deckId);
     setShowCardModal(true);
+
     try {
       const deckResponse = await fetch(`${API_URL}/decks/${user.id}/`, {
         headers: { 'ngrok-skip-browser-warning': '69420' },
       });
-      if (!deckResponse.ok) throw new Error(`HTTP error! Status: ${deckResponse.status}`);
+
+      if (!deckResponse.ok) {
+        throw new Error(`Ошибка загрузки колоды: ${deckResponse.status}`);
+      }
+
       const deckData = await deckResponse.json();
       const deck = deckData.find(d => d.id === deckId);
+
+      if (!deck) {
+        throw new Error('Колода не найдена');
+      }
+
       setIsLanguageDeckSelected(deck.is_language_deck);
 
       const endpoint = deck.is_language_deck ? `/lang_cards/${deckId}` : `/cards/${deckId}`;
       const response = await fetch(`${API_URL}${endpoint}`, {
         headers: { 'ngrok-skip-browser-warning': '69420' },
       });
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        let errorMessage = 'Ошибка загрузки карточек';
+
+        if (errorData.detail) {
+          if (Array.isArray(errorData.detail)) {
+            // Обрабатываем ошибки валидации FastAPI
+            const messages = errorData.detail.map(err => {
+              let msg = err.msg || '';
+              msg = msg.replace('Value error, ', '');
+              return msg;
+            });
+            errorMessage = messages.join(', ');
+          } else if (typeof errorData.detail === 'string') {
+            errorMessage = errorData.detail;
+          }
+        }
+
+        throw new Error(errorMessage);
+      }
+
       const data = await response.json();
       setCards(data);
       setCardRows(data.map(card => (
           deck.is_language_deck
-              ? { id: card.id, word: card.word, translation: card.translation || '', isManuallyEdited: false }
-              : { id: card.id, term: card.term, definition: card.definition }
+              ? {
+                id: card.id,
+                word: card.word,
+                translation: card.translation || '',
+                isManuallyEdited: false,
+                wordError: null,
+                translationError: null
+              }
+              : {
+                id: card.id,
+                term: card.term,
+                definition: card.definition,
+                termError: null,
+                definitionError: null
+              }
       )));
+
     } catch (error) {
       console.error('Error fetching cards:', error);
+      showToast(error.message || 'Ошибка загрузки карточек', 'error');
       setCardRows([]);
+      setShowCardModal(false); // Закрываем модальное окно при ошибке
     }
   };
 
@@ -399,35 +460,128 @@ function App() {
     });
   };
 
+  const validateCardFields = (rows, isLanguageDeck) => {
+    const errors = [];
+
+    rows.forEach((row, index) => {
+      const rowNumber = index + 1;
+
+      if (isLanguageDeck) {
+        // Проверка на пустые поля
+        if (!row.word?.trim()) {
+          errors.push(`Строка ${rowNumber}: слово не может быть пустым`);
+        } else if (row.word.length > 128) {
+          errors.push(`Строка ${rowNumber}: слово не может превышать 128 символов (сейчас ${row.word.length})`);
+        }
+
+        if (!row.translation?.trim()) {
+          errors.push(`Строка ${rowNumber}: перевод не может быть пустым`);
+        } else if (row.translation.length > 128) {
+          errors.push(`Строка ${rowNumber}: перевод не может превышать 128 символов (сейчас ${row.translation.length})`);
+        }
+      } else {
+        // Проверка на пустые поля
+        if (!row.term?.trim()) {
+          errors.push(`Строка ${rowNumber}: термин не может быть пустым`);
+        } else if (row.term.length > 64) {
+          errors.push(`Строка ${rowNumber}: термин не может превышать 64 символов (сейчас ${row.term.length})`);
+        }
+
+        if (!row.definition?.trim()) {
+          errors.push(`Строка ${rowNumber}: определение не может быть пустым`);
+        } else if (row.definition.length > 512) {
+          errors.push(`Строка ${rowNumber}: определение не может превышать 512 символов (сейчас ${row.definition.length})`);
+        }
+      }
+    });
+
+    return errors;
+  };
+
+// Функция для обработки ошибок API
+  const handleApiError = async (response) => {
+    const errorData = await response.json();
+    let errorMessage = '';
+
+    if (errorData.detail) {
+      if (Array.isArray(errorData.detail)) {
+        // Обрабатываем ошибки валидации FastAPI
+        const messages = errorData.detail.map(err => {
+          let field = '';
+          let msg = err.msg || '';
+
+          // Определяем поле для более точного сообщения
+          if (err.loc) {
+            const fieldName = err.loc[err.loc.length - 1];
+            if (fieldName === 'term') field = 'термин';
+            else if (fieldName === 'definition') field = 'определение';
+            else if (fieldName === 'word') field = 'слово';
+            else if (fieldName === 'translation') field = 'перевод';
+          }
+
+          // Убираем технические детали
+          msg = msg.replace('Value error, ', '');
+
+          return field ? `${field}: ${msg}` : msg;
+        });
+        errorMessage = messages.join(', ');
+      } else if (typeof errorData.detail === 'string') {
+        errorMessage = errorData.detail;
+      } else {
+        errorMessage = 'Ошибка сервера';
+      }
+    } else {
+      errorMessage = 'Неизвестная ошибка';
+    }
+
+    throw new Error(errorMessage);
+  };
+
   const saveCards = async () => {
     if (!selectedDeck) return;
     const deck = decks.find(d => d.id === selectedDeck);
     if (!deck) return;
 
-    const invalidRows = cardRows.filter(row => (
-        isLanguageDeckSelected
-            ? !row.word.trim() || !row.translation?.trim()
-            : !row.term.trim() || !row.definition.trim()
-    ));
-    if (invalidRows.length > 0) {
-      showToast(
-          'Заполните все поля для новых карточек (слово и перевод или термин и определение)',
-          'warning'
-      );
+    // Проверяем, есть ли строки для сохранения
+    if (cardRows.length === 0) {
+      showToast('Нет карточек для сохранения', 'warning');
       return;
     }
 
+    // Валидация на фронтенде
+    const validationErrors = validateCardFields(cardRows, isLanguageDeckSelected);
+    if (validationErrors.length > 0) {
+      showToast(validationErrors.join('\n'), 'error');
+      return;
+    }
+
+    // Разделяем новые и обновляемые карточки
     const newCards = cardRows.filter(row => !row.id);
-    const updatedCards = cardRows.filter(row => row.id && (
-        isLanguageDeckSelected
-            ? row.word.trim() !== cards.find(c => c.id === row.id)?.word || row.translation?.trim() !== cards.find(c => c.id === row.id)?.translation
-            : row.term.trim() !== cards.find(c => c.id === row.id)?.term || row.definition.trim() !== cards.find(c => c.id === row.id)?.definition
-    ));
+    const updatedCards = cardRows.filter(row => {
+      if (!row.id) return false;
+
+      if (isLanguageDeckSelected) {
+        const originalCard = cards.find(c => c.id === row.id);
+        return originalCard && (
+            row.word.trim() !== originalCard.word ||
+            row.translation?.trim() !== originalCard.translation
+        );
+      } else {
+        const originalCard = cards.find(c => c.id === row.id);
+        return originalCard && (
+            row.term.trim() !== originalCard.term ||
+            row.definition.trim() !== originalCard.definition
+        );
+      }
+    });
 
     try {
       const endpoint = isLanguageDeckSelected ? '/lang_cards/' : '/cards/';
-      const createPromises = newCards.map(card =>
-          fetch(`${API_URL}${endpoint}`, {
+
+      // Функция для создания одной карточки с обработкой ошибок
+      const createCard = async (card, index) => {
+        try {
+          const response = await fetch(`${API_URL}${endpoint}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -448,17 +602,22 @@ function App() {
                       definition: card.definition.trim(),
                     }
             ),
-          }).then(async response => {
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
-            }
-            return response.json();
-          })
-      );
+          });
 
-      const updatePromises = updatedCards.map(card =>
-          fetch(`${API_URL}${isLanguageDeckSelected ? '/lang_cards/' : '/cards/'}${card.id}`, {
+          if (!response.ok) {
+            await handleApiError(response);
+          }
+
+          return await response.json();
+        } catch (error) {
+          throw new Error(`Строка ${index + 1}: ${error.message}`);
+        }
+      };
+
+      // Функция для обновления одной карточки с обработкой ошибок
+      const updateCard = async (card, index) => {
+        try {
+          const response = await fetch(`${API_URL}${isLanguageDeckSelected ? '/lang_cards/' : '/cards/'}${card.id}`, {
             method: 'PUT',
             headers: {
               'Content-Type': 'application/json',
@@ -469,21 +628,29 @@ function App() {
                     ? { word: card.word.trim(), translation: card.translation?.trim() || '' }
                     : { term: card.term.trim(), definition: card.definition.trim() }
             ),
-          }).then(async response => {
-            if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(`Ошибка: ${JSON.stringify(errorData)}`);
-            }
-            return response.json();
-          })
-      );
+          });
+
+          if (!response.ok) {
+            await handleApiError(response);
+          }
+
+          return await response.json();
+        } catch (error) {
+          throw new Error(`Строка ${index + 1}: ${error.message}`);
+        }
+      };
+
+      // Создаем промисы с указанием индекса для точной ошибки
+      const createPromises = newCards.map((card, idx) => createCard(card, idx));
+      const updatePromises = updatedCards.map((card, idx) => updateCard(card, idx));
 
       const [newCardsData, updatedCardsData] = await Promise.all([
         Promise.all(createPromises),
         Promise.all(updatePromises)
       ]);
 
-      setCards([
+      // Обновляем состояние карточек
+      const updatedCardsList = [
         ...cards.filter(c => !updatedCards.some(uc => uc.id === c.id)),
         ...newCardsData.map(card => (
             isLanguageDeckSelected
@@ -495,15 +662,17 @@ function App() {
                 ? { id: card.id, word: card.word, translation: card.translation }
                 : card
         )),
-      ]);
+      ];
 
+      setCards(updatedCardsList);
       setCardRows([]);
       setShowCardModal(false);
       setTranslatingRows({});
-      showToast('Карточки успешно сохранены!', 'success');
+      showToast(`Успешно сохранено ${newCards.length + updatedCards.length} карточек`, 'success');
+
     } catch (error) {
       console.error('Error saving cards:', error);
-      showToast(`Ошибка при сохранении карточек: ${error.message}`, 'error');
+      showToast(error.message || 'Ошибка при сохранении карточек', 'error');
     }
   };
 
@@ -536,6 +705,14 @@ function App() {
     onSwipedRight: () => handleSwipe('right'),
     trackMouse: true,
   });
+
+  const handleCorrect = () => {
+    handleSwipe('right');
+  };
+
+  const handleIncorrect = () => {
+    handleSwipe('left');
+  };
 
   const toggleFlip = () => setIsFlipped(prev => !prev);
 
@@ -616,6 +793,20 @@ function App() {
                       <p>{cards[currentCardIndex].definition}</p>
                     </div>
                   </div>
+                </div>
+                <div className="study-buttons">
+                  <button
+                      onClick={handleIncorrect}
+                      className="study-button incorrect"
+                  >
+                    ← Не знаю
+                  </button>
+                  <button
+                      onClick={handleCorrect}
+                      className="study-button correct"
+                  >
+                    Знаю →
+                  </button>
                 </div>
               </div>
           ) : (

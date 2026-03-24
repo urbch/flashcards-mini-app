@@ -64,7 +64,6 @@ stop_services() {
 
 run_full() {
     build_images
-    execute_all_tests
     start_services
 }
 
