@@ -40,6 +40,7 @@ def test_create_deck_returns_200_for_valid_language_deck_payload(
     # Arrange
     mock_user = make_user()
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
     mock_db.add.return_value = None
     mock_db.commit.return_value = None
     mock_db.refresh.side_effect = db_refresh_sets_id
@@ -69,6 +70,36 @@ def test_create_deck_returns_200_for_valid_language_deck_payload(
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once()
 
+def test_create_deck_returns_400_when_user_reaches_deck_limit(client, mock_db):
+    """Если пользователь достиг лимита колод, новая колода не должна создаваться."""
+    # Arrange
+    mock_user = make_user()
+
+    query_obj = mock_db.query.return_value
+    filter_obj = query_obj.filter.return_value
+
+    filter_obj.first.side_effect = [mock_user]
+    filter_obj.count.side_effect = [20]
+
+    payload = {
+        "telegram_id": 123456789,
+        "name": "One More Deck",
+        "is_language_deck": False,
+        "source_lang": None,
+        "target_lang": None,
+    }
+
+    # Act
+    response = client.post("/decks/", json=payload)
+
+    # Assert
+    assert response.status_code == 400
+    assert "лимит" in response.json()["detail"].lower()
+
+    mock_db.add.assert_not_called()
+    mock_db.commit.assert_not_called()
+    mock_db.refresh.assert_not_called()
+
 
 def test_create_deck_returns_400_when_language_deck_has_missing_languages(
         client, mock_db
@@ -77,6 +108,7 @@ def test_create_deck_returns_400_when_language_deck_has_missing_languages(
     # Arrange
     mock_user = make_user()
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
 
     payload = {
         "telegram_id": 123456789,
@@ -95,6 +127,29 @@ def test_create_deck_returns_400_when_language_deck_has_missing_languages(
     mock_db.commit.assert_not_called()
     mock_db.refresh.assert_not_called()
 
+def test_create_deck_returns_400_when_languages_are_same(client, mock_db):
+    """Для языковой колоды source_lang и target_lang не должны совпадать."""
+    mock_user = make_user()
+    mock_db.query.return_value.filter.return_value.first.return_value = mock_user
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
+
+    payload = {
+        "telegram_id": 123456789,
+        "name": "Test Deck",
+        "is_language_deck": True,
+        "source_lang": "en",
+        "target_lang": "en",
+    }
+
+    response = client.post("/decks/", json=payload)
+
+    assert response.status_code == 400
+    assert "must be different" in response.json()["detail"].lower()
+
+    mock_db.add.assert_not_called()
+    mock_db.commit.assert_not_called()
+    mock_db.refresh.assert_not_called()
+
 
 def test_create_deck_returns_200_for_valid_regular_deck_payload(
         client, mock_db, db_refresh_sets_id
@@ -103,6 +158,7 @@ def test_create_deck_returns_200_for_valid_regular_deck_payload(
     # Arrange
     mock_user = make_user()
     mock_db.query.return_value.filter.return_value.first.return_value = mock_user
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
     mock_db.add.return_value = None
     mock_db.commit.return_value = None
     mock_db.refresh.side_effect = db_refresh_sets_id

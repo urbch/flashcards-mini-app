@@ -12,6 +12,10 @@ from functools import lru_cache
 from database import SessionLocal, Base, engine
 from models import User, Deck, Card, LangCard
 
+MAX_DECKS_PER_USER = 20
+MAX_CARDS_PER_DECK = 100
+MAX_LANG_CARDS_PER_DECK = 100
+
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -231,8 +235,19 @@ async def create_deck(deck: DeckCreate, db: Session = Depends(get_db)):
             status_code=400,
             detail="Source and target languages are required for language deck"
         )
+    if deck.is_language_deck and deck.source_lang == deck.target_lang:
+        raise HTTPException(
+            status_code=400,
+            detail="Source and target languages must be different"
+        )
     user = get_or_create_user(deck.telegram_id, db)
     logger.info(f"User retrieved or created: id={user.id}")
+    user_decks_count = db.query(Deck).filter(Deck.user_id == user.id).count()
+    if user_decks_count >= MAX_DECKS_PER_USER:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Превышен лимит колод ({MAX_DECKS_PER_USER})"
+        )
     db_deck = Deck(
         user_id=user.id,
         name=deck.name,
@@ -295,6 +310,12 @@ async def delete_deck(deck_id: int, db: Session = Depends(get_db)):
 async def create_card(card: CardCreate, db: Session = Depends(get_db)):
     logger.info(f"Creating card for deck_id: {card.deck_id}")
     deck = db.query(Deck).filter(Deck.id == card.deck_id).first()
+    cards_count = db.query(Card).filter(Card.deck_id == card.deck_id).count()
+    if cards_count >= MAX_CARDS_PER_DECK:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Превышен лимит карточек ({MAX_CARDS_PER_DECK})"
+        )
     if not deck:
         logger.error(f"Deck not found: id={card.deck_id}")
         raise HTTPException(status_code=404, detail="Deck not found")
@@ -368,6 +389,12 @@ async def delete_card(card_id: int, db: Session = Depends(get_db)):
 async def create_lang_card(card: LangCardCreate, db: Session = Depends(get_db)):
     logger.info(f"Creating language card for deck_id: {card.deck_id}, word: {card.word}")
     deck = db.query(Deck).filter(Deck.id == card.deck_id).first()
+    cards_count = db.query(LangCard).filter(LangCard.deck_id == card.deck_id).count()
+    if cards_count >= MAX_LANG_CARDS_PER_DECK:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Превышен лимит карточек ({MAX_LANG_CARDS_PER_DECK})"
+        )
     if not deck or not deck.is_language_deck:
         logger.error(f"Invalid deck for language cards: id={card.deck_id}")
         raise HTTPException(status_code=400, detail="Invalid deck for language cards")

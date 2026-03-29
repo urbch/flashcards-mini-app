@@ -27,6 +27,7 @@ def test_create_card_returns_200_for_valid_payload(client, mock_db, db_refresh_s
     # Arrange
     mock_deck = make_deck(deck_id=1, user_id=1)
     mock_db.query.return_value.filter.return_value.first.return_value = mock_deck
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
     mock_db.add.return_value = None
     mock_db.commit.return_value = None
     mock_db.refresh.side_effect = db_refresh_sets_id
@@ -53,11 +54,40 @@ def test_create_card_returns_200_for_valid_payload(client, mock_db, db_refresh_s
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once()
 
+def test_create_card_returns_400_when_deck_reaches_card_limit(client, mock_db):
+    """Если в колоде достигнут лимит карточек, новая карточка не должна создаваться."""
+    # Arrange
+    mock_deck = make_deck(deck_id=1, user_id=1)
+
+    query_obj = mock_db.query.return_value
+    filter_obj = query_obj.filter.return_value
+
+    filter_obj.first.side_effect = [mock_deck]
+    filter_obj.count.side_effect = [100]
+
+    payload = {
+        "deck_id": 1,
+        "term": "Capital",
+        "definition": "A city that serves as the seat of government",
+    }
+
+    # Act
+    response = client.post("/cards/", json=payload)
+
+    # Assert
+    assert response.status_code == 400
+    assert "лимит" in response.json()["detail"].lower()
+
+    mock_db.add.assert_not_called()
+    mock_db.commit.assert_not_called()
+    mock_db.refresh.assert_not_called()
+
 
 def test_create_card_returns_404_when_deck_not_found(client, mock_db):
     """Если колода не найдена, создание карточки должно завершаться 404."""
     # Arrange
     mock_db.query.return_value.filter.return_value.first.return_value = None
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
 
     payload = {
         "deck_id": 999,

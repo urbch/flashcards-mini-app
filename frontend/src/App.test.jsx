@@ -367,6 +367,51 @@ describe('App Component', () => {
             });
         });
     });
+    describe('boundary conditions for card fields', () => {
+        it('accepts term with max allowed length (64)', async () => {
+            await renderApp();
+            await openEditModalForDeck(0);
+
+            await userEvent.click(screen.getByText('+'));
+
+            const termInputs = screen.getAllByPlaceholderText(/Термин/i);
+            const defInputs = screen.getAllByPlaceholderText(/Определение/i);
+
+            const newTermInput = termInputs[termInputs.length - 1];
+            const newDefInput = defInputs[defInputs.length - 1];
+
+            await userEvent.type(newTermInput, 'a'.repeat(64));
+            await userEvent.type(newDefInput, 'Valid definition');
+
+            await userEvent.click(screen.getByText(/Сохранить/i));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('toast-success')).toBeInTheDocument();
+            });
+        });
+
+        it('rejects term longer than allowed (65)', async () => {
+            await renderApp();
+            await openEditModalForDeck(0);
+
+            await userEvent.click(screen.getByText('+'));
+
+            const termInputs = screen.getAllByPlaceholderText(/Термин/i);
+            const defInputs = screen.getAllByPlaceholderText(/Определение/i);
+
+            const newTermInput = termInputs[termInputs.length - 1];
+            const newDefInput = defInputs[defInputs.length - 1];
+
+            await userEvent.type(newTermInput, 'a'.repeat(65));
+            await userEvent.type(newDefInput, 'Valid definition');
+
+            await userEvent.click(screen.getByText(/Сохранить/i));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('toast-error')).toBeInTheDocument();
+            });
+        });
+    });
 
     describe('Card editing modal', () => {
         it('opens card modal when clicking edit button', async () => {
@@ -449,7 +494,7 @@ describe('App Component', () => {
             });
         });
 
-        it('shows warning toast when trying to save cards with empty fields', async () => {
+        it('shows error toast when trying to save cards with empty fields', async () => {
             await renderApp();
 
             await openEditModalForDeck(0);
@@ -458,7 +503,7 @@ describe('App Component', () => {
             await userEvent.click(screen.getByText(/Сохранить/i));
 
             await waitFor(() => {
-                expect(screen.getByTestId('toast-warning')).toBeInTheDocument();
+                expect(screen.getByTestId('toast-error')).toBeInTheDocument();
             });
         });
 
@@ -528,16 +573,37 @@ describe('App Component', () => {
         it('handles error when fetching cards in modal', async () => {
             global.fetch = vi.fn((url) => {
                 if (url.includes('/cards/')) {
-                    return Promise.resolve({ ok: false });
+                    return Promise.resolve({
+                        ok: false,
+                        json: () => Promise.resolve({ detail: 'Ошибка загрузки карточек' }),
+                    });
                 }
 
-                return Promise.resolve({
-                    ok: true,
-                    json: () =>
-                        Promise.resolve([
-                            { id: 1, name: 'Deck', is_language_deck: false },
-                        ]),
-                });
+                if (url.includes('/decks/')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () =>
+                            Promise.resolve([
+                                { id: 1, name: 'Deck', is_language_deck: false },
+                            ]),
+                    });
+                }
+
+                if (url.includes('/languages')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve(mockLanguages),
+                    });
+                }
+
+                if (url.includes('/user/')) {
+                    return Promise.resolve({
+                        ok: true,
+                        json: () => Promise.resolve(mockUser),
+                    });
+                }
+
+                return Promise.reject(new Error(`Unhandled fetch for ${url}`));
             });
 
             await renderApp();
@@ -551,7 +617,7 @@ describe('App Component', () => {
             await userEvent.click(editButtons[0]);
 
             await waitFor(() => {
-                expect(screen.getByText(/Редактировать карточки/i)).toBeInTheDocument();
+                expect(screen.queryByText(/Редактировать карточки/i)).not.toBeInTheDocument();
             });
         });
     });
@@ -784,7 +850,91 @@ describe('App Component', () => {
                 ).toBeInTheDocument();
             });
         });
+        it('moves to the next card when clicking "Знаю"', async () => {
+            await renderApp();
+            await openStudyModeForDeck(0);
+
+            expect(screen.getByText(/1 из 2/i)).toBeInTheDocument();
+
+            await userEvent.click(
+                screen.getByRole('button', { name: 'Знаю →' })
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText(/2 из 2/i)).toBeInTheDocument();
+            });
+        });
+
+        it('moves to the next card when clicking "Не знаю"', async () => {
+            await renderApp();
+            await openStudyModeForDeck(0);
+
+            expect(screen.getByText(/1 из 2/i)).toBeInTheDocument();
+
+            await userEvent.click(
+                screen.getByRole('button', { name: '← Не знаю' })
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText(/2 из 2/i)).toBeInTheDocument();
+            });
+        });
+
+        it('shows study results after answering all cards', async () => {
+            await renderApp();
+            await openStudyModeForDeck(0);
+
+            await userEvent.click(
+                screen.getByRole('button', { name: 'Знаю →' })
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText(/2 из 2/i)).toBeInTheDocument();
+            });
+
+            await userEvent.click(
+                screen.getByRole('button', { name: '← Не знаю' })
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText(/Результаты изучения/i)).toBeInTheDocument();
+                expect(screen.getByText('Правильно')).toBeInTheDocument();
+                expect(screen.getByText('Неправильно')).toBeInTheDocument();
+                expect(screen.getByText('Всего')).toBeInTheDocument();
+            });
+        });
+
+        it('returns to the main screen from study results', async () => {
+            await renderApp();
+            await openStudyModeForDeck(0);
+
+            await userEvent.click(
+                screen.getByRole('button', { name: 'Знаю →' })
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText(/2 из 2/i)).toBeInTheDocument();
+            });
+
+            await userEvent.click(
+                screen.getByRole('button', { name: '← Не знаю' })
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText(/Результаты изучения/i)).toBeInTheDocument();
+            });
+
+            await userEvent.click(
+                screen.getByRole('button', { name: /Вернуться к колодам/i })
+            );
+
+            await waitFor(() => {
+                expect(screen.getByText(/Создать новую колоду/i)).toBeInTheDocument();
+                expect(screen.queryByText(/Результаты изучения/i)).not.toBeInTheDocument();
+            });
+        });
     });
+
 
     describe('Exception and fallback scenarios', () => {
         it('returns fallback user when fetchUserInfo fails', async () => {

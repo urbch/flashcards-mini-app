@@ -5,16 +5,29 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="72f9f358-d613-4ced-aca2-245ef5a4e2eb" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/.coverage" beforeDir="false" afterPath="$PROJECT_DIR$/api/.coverage" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/api/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/api/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/tests/test_integration.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/tests/test_integration.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/tests/unit/test_cards.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/tests/unit/test_cards.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/tests/unit/test_decks.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/tests/unit/test_decks.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/api/tests/unit/test_lang_cards.py" beforeDir="false" afterPath="$PROJECT_DIR$/api/tests/unit/test_lang_cards.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/vite.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/vite.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/node_modules/.package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/node_modules/.package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/run.sh" beforeDir="false" afterPath="$PROJECT_DIR$/run.sh" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/e2e_tests/test-1.spec.ts" beforeDir="false" afterPath="$PROJECT_DIR$/e2e_tests/test-1.spec.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.test.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.test.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/api/coverage.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reports/api/coverage.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/api/junit.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reports/api/junit.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/bot/coverage.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reports/bot/coverage.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/bot/junit.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reports/bot/junit.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/coverage-final.json" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/coverage-final.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/src/App.jsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/src/App.jsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/src/components/ConfirmModal.jsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/src/components/ConfirmModal.jsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/src/components/Toast.jsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/src/components/Toast.jsx.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/src/components/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/src/components/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reports/frontend/coverage/src/main.jsx.html" beforeDir="false" afterPath="$PROJECT_DIR$/reports/frontend/coverage/src/main.jsx.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -76,6 +89,7 @@
 }]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/api/tests" />
       <recent name="$PROJECT_DIR$/api/tests/unit" />
       <recent name="$PROJECT_DIR$/bot/test" />
       <recent name="$PROJECT_DIR$/frontend/src/components" />
@@ -183,7 +197,7 @@
       <option name="presentableId" value="Default" />
       <updated>1759942644783</updated>
       <workItem from="1759942646167" duration="29077000" />
-      <workItem from="1773834848380" duration="79187000" />
+      <workItem from="1773834848380" duration="129543000" />
     </task>
     <servers />
   </component>

@@ -13,7 +13,7 @@ test('test', async ({ page }) => {
   await page.getByRole('combobox').nth(1).selectOption('en');
   await page.getByRole('button', { name: 'Создать колоду' }).click();
   await page.getByRole('button', { name: '► Показать' }).click();
-  await page.getByRole('button', { name: 'Удалить колоду' }).nth(2).click();
+  await page.getByRole('button', { name: 'Удалить колоду' }).first().click();
   await page.getByRole('button', { name: 'Подтвердить' }).click();
 });
 

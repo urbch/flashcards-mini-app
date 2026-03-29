@@ -53,6 +53,7 @@ async def test_create_lang_card_returns_200_for_valid_payload(
     # Arrange
     mock_deck = make_language_deck(deck_id=1, source_lang="en", target_lang="es")
     mock_db.query.return_value.filter.return_value.first.return_value = mock_deck
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
     mock_db.add.return_value = None
     mock_db.commit.return_value = None
     mock_db.refresh.side_effect = db_refresh_sets_id
@@ -85,11 +86,40 @@ async def test_create_lang_card_returns_200_for_valid_payload(
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once()
 
+def test_create_lang_card_returns_400_when_deck_reaches_lang_card_limit(client, mock_db):
+    """Если в языковой колоде достигнут лимит карточек, новая language card не должна создаваться."""
+    # Arrange
+    mock_deck = make_language_deck(deck_id=1, source_lang="en", target_lang="es")
+
+    query_obj = mock_db.query.return_value
+    filter_obj = query_obj.filter.return_value
+
+    filter_obj.first.side_effect = [mock_deck]
+    filter_obj.count.side_effect = [100]
+
+    payload = {
+        "deck_id": 1,
+        "word": "Hello",
+        "source_lang": "en",
+        "target_lang": "es",
+    }
+
+    # Act
+    response = client.post("/lang_cards/", json=payload)
+
+    # Assert
+    assert response.status_code == 400
+    assert "лимит" in response.json()["detail"].lower()
+
+    mock_db.add.assert_not_called()
+    mock_db.commit.assert_not_called()
+    mock_db.refresh.assert_not_called()
 
 def test_create_lang_card_returns_400_when_deck_not_found(client, mock_db):
     """Если колода не найдена, создание языковой карточки должно завершаться 400."""
     # Arrange
     mock_db.query.return_value.filter.return_value.first.return_value = None
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
 
     payload = {
         "deck_id": 999,
@@ -113,6 +143,7 @@ def test_create_lang_card_returns_400_when_deck_not_found(client, mock_db):
 def test_create_lang_card_returns_400_when_deck_is_not_language_deck(client, mock_db):
     """Если колода существует, но не является языковой, создание должно завершаться 400."""
     # Arrange
+    mock_db.query.return_value.filter.return_value.count.return_value = 0
     mock_db.query.return_value.filter.return_value.first.return_value = make_regular_deck(
         deck_id=1
     )
