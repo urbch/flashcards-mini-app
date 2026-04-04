@@ -19,7 +19,7 @@ jobs:
         run: |
           cat > .env << 'EOF'
           DATABASE_URL=${{ secrets.DATABASE_URL }}
-          TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
+          BOT_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
           # Добавь сюда ВСЕ переменные, которые нужны твоему приложению
           # (BOT_TOKEN, если он отличается от TELEGRAM_TOKEN, SECRET_KEY и т.д.)
           EOF
