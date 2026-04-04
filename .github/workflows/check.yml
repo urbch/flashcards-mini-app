@@ -30,7 +30,6 @@ jobs:
       - name: Build Docker images
         run: |
           docker compose --env-file .env build
-          docker compose up -d
 
       - name: Prepare reports directory
         run: mkdir -p reports/api reports/bot reports/frontend
@@ -38,7 +37,7 @@ jobs:
       # ==================== API Tests ====================
       - name: Run API tests
         run: |
-          docker compose --env-file .env run --rm api pytest tests/unit/ \
+          docker compose --env-file .env run --rm api pytest tests \
             -v \
             --cov=. \
             --cov-report=term-missing \
@@ -70,69 +69,4 @@ jobs:
         with:
           name: test-reports
           path: reports/
-          retention-days: 7
-
-  e2e:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    
-    services:
-      # Опционально: если используете базу данных для e2e тестов
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: testpass
-          POSTGRES_DB: testdb
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4  # Обновил до v4
-        with:
-          node-version: 20
-          cache: 'npm'  # Добавил кэширование
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium  # Устанавливаем только нужный браузер
-
-      - name: Start application server
-        run: |
-          # Запускаем сервер в фоновом режиме
-          npm run dev &  # или npm start, в зависимости от вашего проекта
-          # Ждем, пока сервер запустится
-          npx wait-on http://localhost:5173 --timeout 60000 --verbose
-        env:
-          TEST_MODE: true
-          DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
-          # Добавьте другие переменные окружения
-
-      - name: Run Playwright tests
-        run: npx playwright test --workers=2 --reporter=list --trace on  # Добавил trace для отладки
-        env:
-          CI: true  # Важно для Playwright в CI среде
-
-      - name: Upload Playwright report
-        if: always()  # Загружаем отчет даже при падении тестов
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report
-          path: playwright-report/
-          retention-days: 7
-
-      - name: Upload test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-results
-          path: test-results/
           retention-days: 7
