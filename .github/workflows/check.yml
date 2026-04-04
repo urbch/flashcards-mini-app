@@ -63,13 +63,27 @@ jobs:
       # ==================== Frontend Tests ====================
       - name: Run Frontend unit tests
         run: docker compose --env-file .env run --rm frontend npm run coverage
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npx playwright install
 
-      - name: Run Frontend E2E tests
-        working-directory: ./e2e_tests
+      # Запускаем сервер в фоне
+      - name: Start Vite server
+        run: npm run dev &
+
+      # Ждем, пока сервер будет доступен
+      - name: Wait for server
         run: |
-          npm ci
-          npx playwright install
-          npx playwright test 
+          npx wait-on http://localhost:5173
+
+      # Запускаем Playwright
+      - run: npx playwright test
       # ==================== Upload reports ====================
       - name: Upload test reports
         if: always()
