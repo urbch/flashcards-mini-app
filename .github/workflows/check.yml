@@ -69,11 +69,7 @@ jobs:
         run: |
           npm ci
           npx playwright install
-          npx playwright test \
-            --reporter=html \
-            --reporter=junit=../reports/frontend/e2e-junit.xml \
-            --timeout=60000
-
+          npx playwright test 
       # ==================== Upload reports ====================
       - name: Upload test reports
         if: always()
