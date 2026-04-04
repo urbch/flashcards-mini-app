@@ -63,6 +63,14 @@ jobs:
       # ==================== Frontend Tests ====================
       - name: Run Frontend unit tests
         run: docker compose --env-file .env run --rm frontend npm run coverage
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: reports/
+          retention-days: 7
   e2e:
     runs-on: ubuntu-latest
     steps:
@@ -77,18 +85,5 @@ jobs:
       - name: Start Vite server
         run: npm run dev &
 
-      # Ждем, пока сервер будет доступен
-      - name: Wait for server
-        run: |
-          npx wait-on http://localhost:5173
-
       # Запускаем Playwright
       - run: npx playwright test
-      # ==================== Upload reports ====================
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-reports
-          path: reports/
-          retention-days: 7
