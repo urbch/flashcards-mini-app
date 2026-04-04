@@ -14,22 +14,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # === Создаём .env файл из секретов ===
+      # Создаём .env файл из секретов
       - name: Create .env file from GitHub Secrets
         run: |
           cat > .env << 'EOF'
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           TELEGRAM_TOKEN=${{ secrets.TELEGRAM_TOKEN }}
+          # Добавь сюда ВСЕ переменные, которые нужны твоему приложению
+          # (BOT_TOKEN, если он отличается от TELEGRAM_TOKEN, SECRET_KEY и т.д.)
           EOF
 
-      - name: Show created .env (для отладки — можно потом убрать)
+      - name: Show .env (для отладки)
         run: cat .env
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker images
-        run: docker compose build
+        run: docker compose --env-file .env build
 
       - name: Prepare reports directory
         run: mkdir -p reports/api reports/bot reports/frontend
@@ -37,37 +39,33 @@ jobs:
       # ==================== API Tests ====================
       - name: Run API tests
         run: |
-          docker compose run --rm \
-            --env-file .env \
-            api pytest tests/unit/ \
-              -v \
-              --cov=. \
-              --cov-report=term-missing \
-              --cov-report=html:/app/reports/htmlcov \
-              --cov-report=xml:/app/reports/coverage.xml \
-              --cov-fail-under=80 \
-              --cov-config=/app/.coveragerc \
-              --junitxml=/app/reports/junit.xml
+          docker compose --env-file .env run --rm api pytest tests/unit/ \
+            -v \
+            --cov=. \
+            --cov-report=term-missing \
+            --cov-report=html:/app/reports/htmlcov \
+            --cov-report=xml:/app/reports/coverage.xml \
+            --cov-fail-under=80 \
+            --cov-config=/app/.coveragerc \
+            --junitxml=/app/reports/junit.xml
 
       # ==================== Bot Tests ====================
       - name: Run Bot unit tests
         run: |
-          docker compose run --rm \
-            --env-file .env \
-            bot python -m pytest /app/test/test_bot.py \
-              -v \
-              --cov=. \
-              --cov-config=/app/.coveragerc \
-              --cov-report=term-missing \
-              --cov-report=html:/app/reports/htmlcov \
-              --cov-report=xml:/app/reports/coverage.xml \
-              --junitxml=/app/reports/junit.xml
+          docker compose --env-file .env run --rm bot python -m pytest /app/test/test_bot.py \
+            -v \
+            --cov=. \
+            --cov-config=/app/.coveragerc \
+            --cov-report=term-missing \
+            --cov-report=html:/app/reports/htmlcov \
+            --cov-report=xml:/app/reports/coverage.xml \
+            --junitxml=/app/reports/junit.xml
 
       # ==================== Frontend Tests ====================
-      - name: Run Frontend unit tests with coverage
-        run: docker compose run --rm frontend npm run coverage
+      - name: Run Frontend unit tests
+        run: docker compose --env-file .env run --rm frontend npm run coverage
 
-      # ==================== Upload test reports ====================
+      # ==================== Upload reports ====================
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
