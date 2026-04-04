@@ -72,6 +72,7 @@ jobs:
           path: reports/
           retention-days: 7
   e2e:
+    needs: build-and-test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
