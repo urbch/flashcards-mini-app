@@ -64,6 +64,16 @@ jobs:
       - name: Run Frontend unit tests
         run: docker compose --env-file .env run --rm frontend npm run coverage
 
+      - name: Run Frontend E2E tests
+        working-directory: ./e2e_tests
+        run: |
+          npm ci
+          npx playwright install
+          npx playwright test \
+            --reporter=html \
+            --reporter=junit=../reports/frontend/e2e-junit.xml \
+            --timeout=60000
+
       # ==================== Upload reports ====================
       - name: Upload test reports
         if: always()
