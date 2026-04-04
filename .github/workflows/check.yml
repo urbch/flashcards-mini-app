@@ -110,7 +110,7 @@ jobs:
           # Запускаем сервер в фоновом режиме
           npm run dev &  # или npm start, в зависимости от вашего проекта
           # Ждем, пока сервер запустится
-          npx wait-on http://localhost:5173/?test_mode=true --timeout 60000 --verbose
+          npx wait-on http://localhost:5173 --timeout 60000 --verbose
         env:
           TEST_MODE: true
           DATABASE_URL: postgresql://postgres:testpass@localhost:5432/testdb
