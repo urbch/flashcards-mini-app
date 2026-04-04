@@ -30,7 +30,9 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker images
-        run: docker compose --env-file .env build
+        run: |
+          docker compose --env-file .env build
+          docker compose up -d
 
       - name: Prepare reports directory
         run: mkdir -p reports/api reports/bot reports/frontend
@@ -85,12 +87,6 @@ jobs:
 
       - name: Install Playwright browsers
         run: npx playwright install
-
-      - name: Install wait-on
-        run: npm install --save-dev wait-on
-
-      - name: Start Vite server
-        run: nohup npm run dev &
 
       - name: Wait for server
         run: npx wait-on http://localhost:5173/?test_mode=true --timeout 60000
