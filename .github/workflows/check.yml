@@ -20,7 +20,6 @@ jobs:
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           BOT_TOKEN=${{ secrets.BOT_TOKEN }}
           EOF
-
       - name: Show .env (для отладки)
         run: cat .env
 
@@ -30,7 +29,6 @@ jobs:
       - name: Build Docker images
         run: |
           docker compose --env-file .env build
-
       - name: Prepare reports directory
         run: mkdir -p reports/api reports/bot reports/frontend
 
@@ -46,7 +44,6 @@ jobs:
             --cov-fail-under=80 \
             --cov-config=/app/.coveragerc \
             --junitxml=/app/reports/junit.xml
-
       # ==================== Bot Tests ====================
       - name: Run Bot unit tests
         run: |
@@ -58,7 +55,6 @@ jobs:
             --cov-report=html:/app/reports/htmlcov \
             --cov-report=xml:/app/reports/coverage.xml \
             --junitxml=/app/reports/junit.xml
-
       # ==================== Frontend Tests ====================
       - name: Run Frontend unit tests
         run: docker compose --env-file .env run --rm frontend npm run coverage
