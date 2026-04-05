@@ -37,8 +37,14 @@ jobs:
       # ==================== API Tests ====================
       - name: Run API tests
         run: |
-          docker compose --env-file .env run --rm api pytest tests \
+          docker compose --env-file .env run --rm api pytest tests/unit \
             -v \
+            --cov=. \
+            --cov-report=term-missing \
+            --cov-report=html:/app/reports/htmlcov \
+            --cov-report=xml:/app/reports/coverage.xml \
+            --cov-fail-under=80 \
+            --cov-config=/app/.coveragerc \
             --junitxml=/app/reports/junit.xml
 
       # ==================== Bot Tests ====================
