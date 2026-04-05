@@ -29,7 +29,6 @@ services:
       - app-network
     volumes:
       - .:/app
-      - ./reports/api:/app/reports
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
       interval: 30s

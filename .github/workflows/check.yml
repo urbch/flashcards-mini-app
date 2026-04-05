@@ -37,7 +37,7 @@ jobs:
       # ==================== API Tests ====================
       - name: Run API tests
         run: |
-          docker compose --env-file .env run --rm api pytest tests/unit \
+          docker compose --env-file .env run --rm api pytest tests \
             -v \
             --cov=. \
             --cov-report=term-missing \
