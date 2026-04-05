@@ -105,9 +105,9 @@ class LangCardCreate(BaseModel):
         return v
     @validator('translation')
     def validate_translation_length(cls, v):
-        if len(v) > 128:
+        if v is not None and len(v) > 128:
             raise ValueError('Перевод не может превышать 128 символов')
-        if len(v) < 1:
+        if v is not None and len(v) < 1:
             raise ValueError('Перевод не может быть пустым')
         return v
 
@@ -427,7 +427,7 @@ async def create_lang_card(card: LangCardCreate, db: Session = Depends(get_db)):
         "translation": db_card.translation
     }
 
-@lru_cache(maxsize=1000)
+# @lru_cache(maxsize=1000)
 async def cached_translate(word: str, source_lang: str, target_lang: str) -> str:
     logger.info(f"Translating word: {word} from {source_lang} to {target_lang}")
     url = "http://translate:5000/translate"
