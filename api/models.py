@@ -1,14 +1,16 @@
 from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
-from database import Base
+from api.database import Base
 
 class User(Base):
     __tablename__ = "users"
+    __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, index=True)
     telegram_id = Column(BigInteger, unique=True, index=True)
 
 class Deck(Base):
     __tablename__ = "decks"
+    __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"))
     name = Column(String)
@@ -22,6 +24,7 @@ class Deck(Base):
 
 class LangCard(Base):
     __tablename__ = "lang_cards"
+    __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, index=True)
     deck_id = Column(Integer, ForeignKey("decks.id", ondelete="CASCADE"))
     word = Column(String)
@@ -31,6 +34,7 @@ class LangCard(Base):
 
 class Card(Base):
     __tablename__ = "cards"
+    __table_args__ = {'extend_existing': True}
     id = Column(Integer, primary_key=True, index=True)
     deck_id = Column(Integer, ForeignKey("decks.id", ondelete="CASCADE"))
     term = Column(String)
