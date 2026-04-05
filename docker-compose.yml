@@ -28,8 +28,7 @@ services:
     networks:
       - app-network
     volumes:
-      - ./api:/app
-      - ./api/tests:/app/tests
+      - .:/app
       - ./reports/api:/app/reports
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
