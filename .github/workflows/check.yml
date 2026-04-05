@@ -31,7 +31,12 @@ jobs:
           docker compose --env-file .env build
       - name: Prepare reports directory
         run: mkdir -p reports/api reports/bot reports/frontend
-
+      - name: Start PostgreSQL and wait for health
+        run: |
+          docker compose up -d postgres
+          while [ "$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q postgres))" != "healthy" ]; do
+          sleep 2
+          done
       # ==================== API Tests ====================
       - name: Run API integration tests
         run: |
