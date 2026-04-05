@@ -37,7 +37,9 @@ jobs:
       # ==================== API Tests ====================
       - name: Run API tests
         run: |
-          docker compose --env-file .env run --rm api_tests
+          docker compose --env-file .env run --rm api pytest tests \
+            -v \
+            --junitxml=/app/reports/junit.xml
 
       # ==================== Bot Tests ====================
       - name: Run Bot unit tests

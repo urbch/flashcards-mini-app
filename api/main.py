@@ -9,8 +9,8 @@ import os
 from dotenv import load_dotenv
 from functools import lru_cache
 
-from api.database import SessionLocal
-from api.models import User, Deck, Card, LangCard
+from database import SessionLocal, Base, engine
+from models import User, Deck, Card, LangCard
 
 MAX_DECKS_PER_USER = 20
 MAX_CARDS_PER_DECK = 100
@@ -36,11 +36,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.on_event("startup")
-async def startup_event():
-    # Создаём таблицы только при запуске реального сервера
-    from database import Base, engine   # или откуда у тебя Base и engine
-    Base.metadata.create_all(bind=engine)
+Base.metadata.create_all(bind=engine)
 
 class DeckCreate(BaseModel):
     telegram_id: int
@@ -109,9 +105,9 @@ class LangCardCreate(BaseModel):
         return v
     @validator('translation')
     def validate_translation_length(cls, v):
-        if v is not None and len(v) > 128:
+        if len(v) > 128:
             raise ValueError('Перевод не может превышать 128 символов')
-        if v is not None and len(v) > 128:
+        if len(v) < 1:
             raise ValueError('Перевод не может быть пустым')
         return v
 
@@ -128,9 +124,9 @@ class LangCardUpdate(BaseModel):
         return v
     @validator('translation')
     def validate_translation_length(cls, v):
-        if v is not None and len(v) > 128:
+        if len(v) > 128:
             raise ValueError('Перевод не может превышать 128 символов')
-        if v is not None and len(v) > 128:
+        if len(v) < 1:
             raise ValueError('Перевод не может быть пустым')
         return v
 

@@ -28,39 +28,13 @@ services:
     networks:
       - app-network
     volumes:
-      - ./api:/app
-      - ./api/tests:/app/tests
-      - ./reports/api:/app/reports
+      - .:/app
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 10s
-
-  api_tests:
-    build:
-      context: .
-      dockerfile: api_tests/Dockerfile
-    depends_on:
-      - api
-      - translate
-      - postgres       
-    networks:
-      - app-network
-    environment:
-      - DATABASE_URL=${DATABASE_URL}
-      - BOT_TOKEN=${BOT_TOKEN}
-    volumes:
-      - .:/app
-    working_dir: /app
-    command: >
-      sh -c "
-        echo 'Waiting for API and Translate to be ready...' &&
-        sleep 15 &&
-        pytest api_tests/ --verbose --tb=short \
-          --junitxml=/app/reports/junit-api-integration.xml
-      "
 
   bot:
     build:
