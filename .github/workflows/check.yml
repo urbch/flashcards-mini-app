@@ -33,9 +33,12 @@ jobs:
         run: mkdir -p reports/api reports/bot reports/frontend
 
       # ==================== API Tests ====================
-      - name: Run API tests
+      - name: Run API integration tests
         run: |
-          docker compose run --rm api pytest api/tests/ -v
+          docker compose run --rm api pytest api/tests/test_integration.py -v
+      - name: Run API integration tests bot
+        run: |
+          docker compose run --rm api pytest api/tests/test_integration_bot.py -v
       # ==================== Bot Tests ====================
       - name: Run Bot unit tests
         run: |
