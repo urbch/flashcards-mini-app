@@ -35,7 +35,7 @@ jobs:
       # ==================== API Tests ====================
       - name: Run API tests
         run: |
-          docker compose run --rm api pytest api/tests/test_integration.py -v
+          docker compose run --rm api pytest api/tests/ -v
       # ==================== Bot Tests ====================
       - name: Run Bot unit tests
         run: |
