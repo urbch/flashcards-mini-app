@@ -31,6 +31,12 @@ jobs:
           while [ "$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q postgres))" != "healthy" ]; do
           sleep 2
           done
+      - name: Start LibreTranslate and wait for health
+        run: |
+          docker compose up -d translate
+          while [ "$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q translate))" != "healthy" ]; do
+          sleep 2
+          done
       - name: Run API integration tests
         run: |
           sudo docker compose run --rm api pytest tests/test_integration.py -v --junitxml=reports/api/junit.xml
