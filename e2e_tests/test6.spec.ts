@@ -1,0 +1,35 @@
+import { test, expect } from '@playwright/test';
+
+test('E2E-06: Комплексное редактирование колоды', async ({ page }) => {
+  await page.goto('http://localhost:5173/?test_mode=true');
+  await page.getByRole('textbox', { name: 'Введите название колоды' }).click();
+  await page.getByRole('textbox', { name: 'Введите название колоды' }).fill('тестовая колода');
+  await page.getByRole('button', { name: 'Создать колоду' }).click();
+  await page.getByRole('button', { name: '► Показать' }).click();
+  await page.getByRole('button', { name: 'Редактировать карточки' }).first().click();
+  await page.getByRole('button', { name: '+' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).fill('термин 1');
+  await page.getByRole('textbox', { name: 'Определение' }).click();
+  await page.getByRole('textbox', { name: 'Определение' }).fill('определение 1');
+  await page.getByRole('button', { name: '+' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Термин' }).nth(1).fill('термин 2');
+  await page.getByRole('textbox', { name: 'Определение' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Определение' }).nth(1).fill('определение 2');
+  await page.getByRole('button', { name: 'Сохранить' }).click();
+  await page.getByRole('button', { name: 'Редактировать карточки' }).first().click();
+  await page.getByText('определение 1').click();
+  await page.getByText('определение 1').fill('');
+  await page.getByRole('textbox', { name: 'Определение' }).first().click();
+  await page.getByRole('textbox', { name: 'Определение' }).first().fill('новое определение 1');
+  await page.getByRole('button', { name: '×' }).nth(1).click();
+  await page.getByRole('button', { name: '+' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Термин' }).nth(1).fill('новый термин');
+  await page.getByRole('textbox', { name: 'Определение' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Определение' }).nth(1).fill('новое определение');
+  await page.getByRole('button', { name: 'Сохранить' }).click();
+  await page.getByRole('button', { name: 'Удалить колоду' }).first().click();
+  await page.getByRole('button', { name: 'Подтвердить' }).click();
+});

@@ -1,0 +1,37 @@
+import { test, expect } from '@playwright/test';
+
+test('E2E-10: Сохранение данных между сессиями', async ({ page }) => {
+  await page.goto('http://localhost:5173/?test_mode=true');
+  await page.getByRole('textbox', { name: 'Введите название колоды' }).click();
+  await page.getByRole('textbox', { name: 'Введите название колоды' }).fill('test deck');
+  await page.getByRole('button', { name: 'Создать колоду' }).click();
+  await page.getByRole('button', { name: '► Показать' }).click();
+  await page.getByRole('button', { name: 'Редактировать карточки' }).click();
+  await page.getByRole('button', { name: '+' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).fill('term 1');
+  await page.getByRole('textbox', { name: 'Определение' }).click();
+  await page.getByRole('textbox', { name: 'Определение' }).fill('deff 1');
+  await page.getByRole('button', { name: '+' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Термин' }).nth(1).fill('term 2');
+  await page.getByRole('textbox', { name: 'Определение' }).nth(1).click();
+  await page.getByRole('textbox', { name: 'Определение' }).nth(1).fill('deff 2');
+  await page.getByRole('button', { name: 'Сохранить' }).click();
+  await page.goto('http://localhost:5173/?test_mode=true');
+  await page.getByRole('button', { name: '► Показать' }).click();
+  await page.getByRole('button', { name: 'Редактировать карточки' }).click();
+  await page.getByRole('textbox', { name: 'Термин' }).first().click();
+  await page.getByText('deff 1').click();
+  await page.getByRole('textbox', { name: 'Термин' }).nth(1).click();
+  await page.getByText('deff 2').click();
+  await page.getByRole('button', { name: 'Закрыть' }).click();
+  await page.getByRole('button', { name: 'Учить карточки' }).click();
+  await page.locator('div').nth(4).click();
+  await page.getByRole('button', { name: '← Не знаю' }).click();
+  await page.locator('div').nth(4).click();
+  await page.getByRole('button', { name: '← Не знаю' }).click();
+  await page.getByRole('button', { name: 'Вернуться к колодам' }).click();
+  await page.getByRole('button', { name: 'Удалить колоду' }).click();
+  await page.getByRole('button', { name: 'Подтвердить' }).click();
+});
