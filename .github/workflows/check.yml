@@ -27,26 +27,11 @@ jobs:
         run: mkdir -p reports/api
       - name: Start PostgreSQL and wait for health
         run: |
-<<<<<<< HEAD
-          docker compose --env-file .env run --rm api pytest tests/unit \
-            -v \
-            --cov=. \
-            --cov-report=term-missing \
-            --cov-report=html:/app/reports/htmlcov \
-            --cov-report=xml:/app/reports/coverage.xml \
-            --cov-fail-under=80 \
-            --cov-config=/app/.coveragerc \
-            --junitxml=/app/reports/junit.xml
-
-      # ==================== Bot Tests ====================
-      - name: Run Bot unit tests
-=======
           docker compose up -d postgres
           while [ "$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q postgres))" != "healthy" ]; do
           sleep 2
           done
       - name: Run API integration tests
->>>>>>> df8fccd5c237930238f52f7ac56cb2dffd051506
         run: |
           docker compose run --rm api pytest api/tests/test_integration.py -v --junitxml=reports/api/junit.xml
       - name: Run API integration tests for bot
