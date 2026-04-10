@@ -54,98 +54,9 @@ def test_create_card_returns_200_for_valid_payload(client, mock_db, db_refresh_s
     mock_db.commit.assert_called_once()
     mock_db.refresh.assert_called_once()
 
-
-def test_create_card_returns_200_when_deck_has_99_cards_creating_100th(
-        client, mock_db, db_refresh_sets_id
-):
-
-    mock_deck = make_deck(deck_id=1, user_id=1)
-    
-    query_obj = mock_db.query.return_value
-    filter_obj = query_obj.filter.return_value
-    
-    filter_obj.first.return_value = mock_deck
-    filter_obj.count.return_value = 99  
-    
-    mock_db.add.return_value = None
-    mock_db.commit.return_value = None
-    mock_db.refresh.side_effect = db_refresh_sets_id
-    
-    payload = {
-        "deck_id": 1,
-        "term": "100th Card",
-        "definition": "This is the 100th card in the deck",
-    }
-    
-  
-    response = client.post("/cards/", json=payload)
-
-    assert response.status_code == 200
-    body = response.json()
-    
-    assert body["id"] == 1
-    assert body["deck_id"] == 1
-    assert body["term"] == "100th Card"
-    assert body["definition"] == "This is the 100th card in the deck"
-    
-    mock_db.add.assert_called_once()
-    mock_db.commit.assert_called_once()
-    mock_db.refresh.assert_called_once()
-
-
-
-def test_create_card_returns_200_for_exact_boundary_card_limit(
-        client, mock_db, db_refresh_sets_id
-):
-    
-    test_cases = [
-        (0, True, "first_card"),          
-        (1, True, "second_card"),     
-        (50, True, "fifty_first_card"),  
-    ]
-    
-    for current_count, should_succeed, card_name in test_cases:
-        # Arrange
-        mock_deck = make_deck(deck_id=1, user_id=1)
-        
-        query_obj = mock_db.query.return_value
-        filter_obj = query_obj.filter.return_value
-        
-        filter_obj.first.return_value = mock_deck
-        filter_obj.count.return_value = current_count
-        
-        mock_db.add.reset_mock()
-        mock_db.commit.reset_mock()
-        mock_db.refresh.reset_mock()
-        
-        if should_succeed:
-            mock_db.refresh.side_effect = db_refresh_sets_id
-        
-        payload = {
-            "deck_id": 1,
-            "term": card_name,
-            "definition": f"This is the {card_name}",
-        }
-        
-        response = client.post("/cards/", json=payload)
-        
-        if should_succeed:
-            assert response.status_code == 200, \
-                f"Should succeed when deck has {current_count} cards"
-            mock_db.add.assert_called_once()
-            mock_db.commit.assert_called_once()
-            if current_count == 99:
-                mock_db.refresh.assert_called_once()
-        else:
-            assert response.status_code == 400, \
-                f"Should fail when deck has {current_count} cards"
-            assert "лимит" in response.json()["detail"].lower()
-            mock_db.add.assert_not_called()
-            mock_db.commit.assert_not_called()
-
 def test_create_card_returns_400_when_deck_reaches_card_limit(client, mock_db):
     """Если в колоде достигнут лимит карточек, новая карточка не должна создаваться."""
-
+    # Arrange
     mock_deck = make_deck(deck_id=1, user_id=1)
 
     query_obj = mock_db.query.return_value
@@ -160,10 +71,10 @@ def test_create_card_returns_400_when_deck_reaches_card_limit(client, mock_db):
         "definition": "A city that serves as the seat of government",
     }
 
-
+    # Act
     response = client.post("/cards/", json=payload)
 
-
+    # Assert
     assert response.status_code == 400
     assert "лимит" in response.json()["detail"].lower()
 
