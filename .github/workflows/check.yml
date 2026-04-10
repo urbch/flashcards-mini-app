@@ -25,30 +25,26 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Cache Docker layers
-        uses: actions/cache@v4
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Build Docker images
         run: docker compose --env-file .env build
 
-      - name: Start all services and wait for health
-        run: docker compose --env-file .env up -d --wait --wait-timeout 60
+      - name: Start and wait for services (postgres, translate, frontend)
+        run: |
+          for service in postgres translate frontend; do
+            docker compose --env-file .env up -d $service
+            timeout=60
+            while [ "$(docker inspect --format='{{.State.Health.Status}}' $(docker compose ps -q $service) 2>/dev/null)" != "healthy" ]; do
+              if [ $timeout -le 0 ]; then
+                echo "Timeout waiting for $service"
+                exit 1
+              fi
+              sleep 2
+              timeout=$((timeout-2))
+            done
+          done
 
       - name: Prepare reports directory
         run: mkdir -p reports/api
-
-      - name: Cache npm
-        uses: actions/cache@v4
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -57,14 +53,6 @@ jobs:
 
       - name: Install dependencies (e2e tests)
         run: npm ci
-
-      - name: Cache Playwright browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-chromium-${{ hashFiles('package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-playwright-chromium-
 
       - name: Install Playwright browsers (only Chromium)
         run: npx playwright install chromium
@@ -91,7 +79,6 @@ jobs:
         if: always()
         run: |
           docker compose --env-file .env down -v
-          # Безопасное удаление .env (затираем перед удалением)
           if [ -f .env ]; then
             shred -u .env 2>/dev/null || rm -f .env
           fi
