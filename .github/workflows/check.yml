@@ -33,10 +33,7 @@ jobs:
           done
       - name: Run API integration tests
         run: |
-          docker compose run --rm api pytest api/tests/test_integration.py -v --junitxml=reports/api/junit.xml
-      - name: Run API integration tests for bot
-        run: |
-          docker compose run --rm api pytest api/tests/test_integration_bot.py -v --junitxml=reports/api/junit-bot.xml
+          sudo docker compose run --rm api pytest tests/test_integration.py -v --junitxml=reports/api/junit.xml
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4

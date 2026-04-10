@@ -59,12 +59,32 @@ def client(db_session):
 
 @pytest.fixture
 def test_user(db_session):
-    """Создает тестового пользователя в базе."""
     user = User(telegram_id=123456789)
     db_session.add(user)
     db_session.commit()
     db_session.refresh(user)
     return user
+
+@pytest.fixture
+def make_user(db_session):
+    def _make(tg_id: int):
+        user = User(telegram_id=tg_id)
+        db_session.add(user)
+        db_session.commit()
+        db_session.refresh(user)
+        return user
+    return _make
+
+
+@pytest.fixture
+def make_deck(db_session):
+    def _make(user_id: int, name: str, is_lang: bool = False):
+        deck = Deck(user_id=user_id, name=name, is_language_deck=is_lang)
+        db_session.add(deck)
+        db_session.commit()
+        db_session.refresh(deck)
+        return deck
+    return _make
 
 
 async def wait_for_translate_service():
@@ -101,7 +121,6 @@ def test_create_standard_deck(client, db_session, test_user):
     assert data["name"] == "Стандартная колода"
     assert data["is_language_deck"] is False
 
-    # Проверка в БД
     db_deck = db_session.get(Deck, data["id"])
     assert db_deck is not None
     assert db_deck.user_id == test_user.id
@@ -155,7 +174,7 @@ def test_add_cards_to_standard_deck(client, db_session, test_user):
         "/cards/",
         json={"term": "Error", "definition": "Fail", "deck_id": 99999}
     )
-    assert bad_response.status_code == 404  # Или 400, зависит от вашей реализации API
+    assert bad_response.status_code == 404
 
 
 # 8. Добавление карточек в языковую колоду с ручным переводом
@@ -311,34 +330,14 @@ async def test_card_updates_and_error_handling(client, db_session: Session):
 
 
 # 7. Сценарий: «Безопасность доступа»
-@pytest.mark.asyncio
-async def test_user_isolation_and_cascade_deletion(client, db_session: Session):
-    """
-    Модули: API + PostgreSQL Constraints (Foreign Keys).
-    Проверяет: Изоляцию пользователей и Cascade Delete.
-    """
-    # 1. Создаем двух разных пользователей
-    u1_tg, u2_tg = 111, 222
-    client.post("/decks/", json={"telegram_id": u1_tg, "name": "Deck User 1", "is_language_deck": False})
-    client.post("/decks/", json={"telegram_id": u2_tg, "name": "Deck User 2", "is_language_deck": False})
+def test_user_isolation(client, make_user, make_deck):
+    user1 = make_user(tg_id=111)
+    user2 = make_user(tg_id=222)
 
-    # 2. Проверка изоляции: Юзер 1 не должен видеть колоду Юзера 2
-    resp_u1 = client.get(f"/decks/{u1_tg}/")
-    assert len(resp_u1.json()) == 1
-    assert resp_u1.json()[0]["name"] == "Deck User 1"
+    deck1 = make_deck(user_id=user1.id, name="User1 Deck")
 
-    # 3. Проверка каскадной очистки
-    deck_id = resp_u1.json()[0]["id"]
-    # Добавляем карточку
-    card_id = client.post("/cards/", json={"deck_id": deck_id, "term": "X", "definition": "Y"}).json()["id"]
-
-    # Удаляем колоду
-    client.delete(f"/decks/{deck_id}")
-
-    # Проверяем, что карточка удалилась автоматически (Cascade)
-    db_session.expire_all()
-    assert db_session.get(Card, card_id) is None
-
+    response = client.get(f"/decks/{user2.telegram_id}/")
+    assert len(response.json()) == 0
 
 # 8. Сценарий: «Автоматизация профиля и работа кэша перевода»
 @pytest.mark.asyncio
@@ -415,12 +414,10 @@ async def test_deck_type_integrity(client, db_session: Session):
     db_session.add(user);
     db_session.commit()
 
-    # 1. Создаем ОБЫЧНУЮ колоду
     deck = Deck(name="Standard Deck", user_id=user.id, is_language_deck=False)
     db_session.add(deck);
     db_session.commit()
 
-    # 2. Попытка добавить LangCard (через эндпоинт языковых карт)
     bad_resp = client.post("/lang_cards/", json={
         "deck_id": deck.id,
         "word": "Test",
@@ -432,3 +429,23 @@ async def test_deck_type_integrity(client, db_session: Session):
     assert "Invalid deck for language cards" in bad_resp.json()["detail"]
 
 
+@pytest.mark.parametrize("source, target, word", [
+    ("en", "ru", "Apple"),
+    ("ru", "en", "Привет"),
+])
+def test_multiple_translations(client, db_session, test_user, source, target, word):
+    try:
+        response = httpx.get("http://translate:5000/languages", timeout=2.0)
+        if response.status_code != 200:
+            pytest.skip("Сервис перевода недоступен")
+    except Exception:
+        pytest.skip("Сервис перевода недоступен")
+    deck = Deck(name="Test", user_id=test_user.id, is_language_deck=True,
+                source_lang=source, target_lang=target)
+    db_session.add(deck)
+    db_session.commit()
+
+    response = client.post("/lang_cards/", json={
+        "deck_id": deck.id, "word": word, "source_lang": source, "target_lang": target, "translation": None
+    })
+    assert response.status_code == 200

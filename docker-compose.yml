@@ -12,7 +12,6 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-      - ./reports/frontend:/app/reports
 
   api:
     build:
@@ -28,7 +27,7 @@ services:
     networks:
       - app-network
     volumes:
-      - .:/app
+      - ./api:/app
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
       interval: 30s
@@ -48,7 +47,6 @@ services:
       - app-network
     volumes:
       - ./bot:/app
-      - ./reports/bot:/app/reports
     command: python main.py
     restart: unless-stopped
 
@@ -97,4 +95,3 @@ volumes:
 networks:
   app-network:
     driver: bridge
-
