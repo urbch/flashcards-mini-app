@@ -40,6 +40,24 @@ jobs:
       - name: Run API integration tests
         run: |
           sudo docker compose run --rm api pytest tests/test_integration.py -v --junitxml=reports/api/junit.xml
+            - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies (e2e tests)
+        run: |
+          cd e2e_tests
+          npm ci
+
+      - name: Install Playwright browsers (only Chromium)
+        run: |
+          cd e2e_tests
+          npx playwright install chromium
+
+      - name: Run Playwright e2e tests (1 worker, Chromium)
+        run: |
+          cd e2e_tests
+          npx playwright test --workers=1 --project=chromium
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
