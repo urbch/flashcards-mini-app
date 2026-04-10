@@ -4,7 +4,7 @@ on:
   push:
     branches:  main, backend_develop, frontend_develop 
   pull_request:
-    branches:  main
+    branches:  main 
   workflow_dispatch:
 
 jobs:
@@ -14,6 +14,13 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      - name: Create .env file from GitHub Secrets
+        run: |
+          cat > .env << 'EOF'
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          BOT_TOKEN=${{ secrets.BOT_TOKEN }}
+          EOF
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -27,13 +34,13 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Build Docker images
-        run: |
-          docker compose build
-          # (опционально) помечаем образы, чтобы избежать конфликта имён
-          docker compose images -q | xargs docker image inspect > /dev/null
+        run: docker compose --env-file .env build
 
       - name: Start all services and wait for health
-        run: docker compose up -d --wait --wait-timeout 60
+        run: docker compose --env-file .env up -d --wait --wait-timeout 60
+
+      - name: Prepare reports directory
+        run: mkdir -p reports/api
 
       - name: Cache npm
         uses: actions/cache@v4
@@ -62,18 +69,9 @@ jobs:
       - name: Install Playwright browsers (only Chromium)
         run: npx playwright install chromium
 
-      - name: Prepare reports directory
-        run: mkdir -p reports/api
-
       - name: Run API integration tests
         run: |
-          docker compose run --rm \
-            -e DATABASE_URL="$DATABASE_URL" \
-            -e BOT_TOKEN="$BOT_TOKEN" \
-            api pytest tests/test_integration.py -v --junitxml=reports/api/junit.xml
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          docker compose --env-file .env run --rm api pytest tests/test_integration.py -v --junitxml=reports/api/junit.xml
 
       - name: Run Playwright e2e tests (1 worker, Chromium)
         run: npx playwright test --workers=1 --project=chromium
@@ -91,4 +89,9 @@ jobs:
 
       - name: Cleanup
         if: always()
-        run: docker compose down -v
+        run: |
+          docker compose --env-file .env down -v
+          # Безопасное удаление .env (затираем перед удалением)
+          if [ -f .env ]; then
+            shred -u .env 2>/dev/null || rm -f .env
+          fi
