@@ -40,7 +40,7 @@ jobs:
       - name: Run API integration tests
         run: |
           sudo docker compose run --rm api pytest tests/test_integration.py -v --junitxml=reports/api/junit.xml
-            - name: Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
