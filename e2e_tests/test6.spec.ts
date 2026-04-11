@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test.setup';
 
 test('E2E-06: Комплексное редактирование колоды', async ({ page }) => {
   await page.goto('http://localhost:5173/?test_mode=true');
@@ -30,6 +30,4 @@ test('E2E-06: Комплексное редактирование колоды',
   await page.getByRole('textbox', { name: 'Определение' }).nth(1).click();
   await page.getByRole('textbox', { name: 'Определение' }).nth(1).fill('новое определение');
   await page.getByRole('button', { name: 'Сохранить' }).click();
-  await page.getByRole('button', { name: 'Удалить колоду' }).first().click();
-  await page.getByRole('button', { name: 'Подтвердить' }).click();
 });

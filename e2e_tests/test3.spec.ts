@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test.setup';
 
 test('E2E-03: Валидация создания колоды', async ({ page }) => {
   await page.goto('http://localhost:5173/?test_mode=true');
@@ -25,6 +25,4 @@ test('E2E-03: Валидация создания колоды', async ({ page }
   // Проверяем, что колода появилась в списке
   await page.getByRole('button', { name: '► Показать' }).click();
   await expect(page.getByText('deck name')).toBeVisible();
-  await page.getByRole('button', { name: 'Удалить колоду' }).first().click();
-  await page.getByRole('button', { name: 'Подтвердить' }).click();
 });

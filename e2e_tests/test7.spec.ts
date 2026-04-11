@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test.setup';
 
 test('E2E-07: Удаление колоды с карточками', async ({ page }) => {
   await page.goto('http://localhost:5173/?test_mode=true');

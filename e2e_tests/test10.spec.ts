@@ -1,4 +1,4 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test.setup';
 
 test('E2E-10: Сохранение данных между сессиями', async ({ page }) => {
   await page.goto('http://localhost:5173/?test_mode=true');
@@ -32,6 +32,4 @@ test('E2E-10: Сохранение данных между сессиями', as
   await page.locator('div').nth(4).click();
   await page.getByRole('button', { name: '← Не знаю' }).click();
   await page.getByRole('button', { name: 'Вернуться к колодам' }).click();
-  await page.getByRole('button', { name: 'Удалить колоду' }).click();
-  await page.getByRole('button', { name: 'Подтвердить' }).click();
 });

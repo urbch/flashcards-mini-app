@@ -1,5 +1,5 @@
 
-import { test, expect } from '@playwright/test';
+import { test, expect } from './test.setup';
 
 test('E2E-02: Создание и использование языковой колоды', async ({ page }) => {
   await page.goto('http://localhost:5173/?test_mode=true');
@@ -28,6 +28,4 @@ test('E2E-02: Создание и использование языковой к
   await page.locator('div').nth(4).click();
   await page.getByRole('button', { name: 'Знаю →' }).click();
   await page.getByRole('button', { name: 'Вернуться к колодам' }).click();
-  await page.getByRole('button', { name: 'Удалить колоду' }).first().click();
-  await page.getByRole('button', { name: 'Подтвердить' }).click();
 });
